@@ -43,6 +43,6 @@ tolerations: []
 affinity: {}
 
 database:
-  url: http://postgres
+  host: http://postgres.default
   user: admin
   password: cm9vdAo=
