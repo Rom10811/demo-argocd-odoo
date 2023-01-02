@@ -1,0 +1,4 @@
+image:
+  repository_name: odoo
+  tag: 16.0
+  pullPolicy: Always
