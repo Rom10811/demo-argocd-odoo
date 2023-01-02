@@ -12,7 +12,6 @@ spec:
   template:
     metadata:
       annotations:
-        {{- include "odoo.annotations" . | nindent 8 }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
       labels:
