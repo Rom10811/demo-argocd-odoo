@@ -41,7 +41,7 @@ helm.sh/chart: {{ include "odoo.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-version: {{ .Values.image.tag }}
+version: {{ .Values.image.tag | quote }}
 {{- end -}}
 
 
