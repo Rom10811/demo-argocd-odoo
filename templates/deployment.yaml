@@ -36,19 +36,6 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
               protocol: {{ .Values.service.protocol }}
-          # readinessProbe:
-          #   initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
-          #   failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
-          #   periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
-          #   httpGet:
-          #     path: {{ .Values.readinessProbe.healthEndpoint }}
-          #     port: {{ .Values.service.targetPort }}
-          # livenessProbe:
-          #   initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
-          #   periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
-          #   httpGet:
-          #     path: {{ .Values.livenessProbe.healthEndpoint }}
-          #     port: {{ .Values.service.targetPort }}
           envFrom:
             - configMapRef:
                 name: {{ include "odoo.name" . }}
