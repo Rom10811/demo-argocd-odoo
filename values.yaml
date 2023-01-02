@@ -5,9 +5,8 @@
 replicaCount: 2
 
 image:
-  repository: 
-  name: odoo
-  tag: latest
+  repository_name: odoo
+  tag: 16.0
   pullPolicy: Always
 
 nameOverride: ""
