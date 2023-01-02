@@ -45,4 +45,4 @@ affinity: {}
 database:
   host: postgres
   user: admin
-  password: cm9vdAo=
+  password: cm9vdA==
