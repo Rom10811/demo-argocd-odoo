@@ -1,1 +1,1 @@
-# odoo-demo
+## Deploy oddo app using helm chart thru ArgoCD to k8s cluster
