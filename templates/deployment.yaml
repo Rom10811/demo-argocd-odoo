@@ -19,32 +19,32 @@ spec:
         version: {{ .Values.image.tag | quote }}
     spec:
       securityContext:
-        fsGroup: 101  # Important pour les permissions de fichiers
+        fsGroup: 101
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
-    {{- with .Values.imagePullSecrets }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}
+      serviceAccountName: {{ include "odoo.serviceAccountName" . }}
       volumes:
         - name: postgres-storage
           {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ include "odoo.fullname" . }}-postgres-pvc
           {{- else }}
-          emptyDir: { }
+          emptyDir: {}
           {{- end }}
-        # Ajout de volumes pour Odoo
         - name: odoo-sessions
-          emptyDir: { }
+          emptyDir: {}
         - name: odoo-filestore
-          emptyDir: { }
+          emptyDir: {}
         - name: odoo-addons
-          emptyDir: { }
+          emptyDir: {}
       initContainers:
         # Init container pour fixer les permissions
         - name: fix-permissions
           image: busybox:1.35
-          command: [ 'sh', '-c' ]
+          command: ['sh', '-c']
           args:
             - |
               mkdir -p /var/lib/odoo/sessions /var/lib/odoo/filestore /var/lib/odoo/addons
@@ -58,19 +58,33 @@ spec:
             - name: odoo-addons
               mountPath: /var/lib/odoo/addons
           securityContext:
-            runAsUser: 0  # Root pour pouvoir changer les permissions
+            runAsUser: 0
+        # Init container pour attendre PostgreSQL
+        - name: wait-for-postgres
+          image: postgres:15-alpine
+          command: ['sh', '-c']
+          args:
+            - |
+              until pg_isready -h 127.0.0.1 -p 5432 -U {{ .Values.database.user }}; do
+                echo "En attente de PostgreSQL..."
+                sleep 2
+              done
+              echo "PostgreSQL est prêt!"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "odoo.name" . }}
+                  key: PASSWORD
       containers:
         # Container PostgreSQL
         - name: postgres
           image: postgres:15-alpine
           env:
             - name: POSTGRES_DB
-              value: "{{ .Values.database.name }}"
+              value: {{ .Values.database.name | quote }}
             - name: POSTGRES_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "odoo.name" . }}
-                  key: USER
+              value: {{ .Values.database.user | quote }}
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -78,8 +92,13 @@ spec:
                   key: PASSWORD
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: "md5"
+            - name: POSTGRES_INITDB_ARGS
+              value: "--auth-host=md5"
           ports:
             - containerPort: 5432
+              name: postgres
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
@@ -90,27 +109,56 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+                - pg_isready -U {{ .Values.database.user }} -d {{ .Values.database.name }} -h 127.0.0.1 -p 5432
             initialDelaySeconds: 15
-            periodSeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U {{ .Values.database.user }} -d {{ .Values.database.name }} -h 127.0.0.1 -p 5432
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
         # Container Odoo
         - name: {{ .Chart.Name }}
-          securityContext:
-            runAsUser: 101
-            runAsGroup: 101
-            allowPrivilegeEscalation: false
-            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.targetPort }}
+              containerPort: 8069
               protocol: TCP
-          envFrom:
-            - configMapRef:
-                name: {{ include "odoo.name" . }}
-            - secretRef:
-                name: {{ include "odoo.name" . }}
+          env:
+            - name: HOST
+              value: "127.0.0.1"
+            - name: USER
+              value: {{ .Values.database.user | quote }}
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "odoo.name" . }}
+                  key: PASSWORD
+            - name: DB_NAME
+              value: {{ .Values.database.name | quote }}
+            # Variables d'environnement pour Odoo
+            - name: POSTGRES_HOST
+              value: "127.0.0.1"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: {{ .Values.database.user | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "odoo.name" . }}
+                  key: PASSWORD
+            - name: POSTGRES_DB
+              value: {{ .Values.database.name | quote }}
           volumeMounts:
             - name: odoo-sessions
               mountPath: /var/lib/odoo/sessions
@@ -118,29 +166,35 @@ spec:
               mountPath: /var/lib/odoo/filestore
             - name: odoo-addons
               mountPath: /var/lib/odoo/addons
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /web/health
               port: http
-            initialDelaySeconds: 60  # Augmenté pour laisser le temps à Odoo de démarrer
+            initialDelaySeconds: 120
             periodSeconds: 10
+            timeoutSeconds: 8
+            failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /web/health
               port: http
-            initialDelaySeconds: 120  # Augmenté pour laisser le temps à Odoo de démarrer
+            initialDelaySeconds: 180
             periodSeconds: 30
+            timeoutSeconds: 8
+            failureThreshold: 6
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-    {{- with .Values.affinity }}
+      {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
-    {{- end }}
+      {{- end }}
