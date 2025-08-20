@@ -26,7 +26,6 @@ service:
   type: NodePort
   targetPort: 8069
   port: 8069
-  nodePort: '30300'
 
 resources:
   limits:
@@ -46,7 +45,6 @@ database:
   repository_name: postgres
   tag: 16.0
   pullPolicy: Always
-  host: {{ include "odoo.name" . }}-postgresql
   user: admin
   password: cm9vdA==  # base64 encodé
   name: odoo
