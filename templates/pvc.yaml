@@ -1,4 +1,30 @@
-# postgres-pvc.yaml
+# pv-hostpath.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /tmp/k8s-postgres-data
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: odoo-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /tmp/k8s-odoo-data
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -10,9 +36,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: standard  # Adaptez selon votre cluster
 ---
-# odoo-pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -24,4 +48,3 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: standard
