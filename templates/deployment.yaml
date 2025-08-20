@@ -17,21 +17,32 @@ spec:
       containers:
       - name: odoo
         image: odoo:18
-        env:
-        - name: HOST
-          value: postgresql-service
-        - name: PORT
-          value: "5432"
-        - name: USER
-          value: odoo
-        - name: PASSWORD
-          value: odoo123
         ports:
         - containerPort: 8069
         volumeMounts:
+        # Le fichier de config
+        - name: odoo-config
+          mountPath: /etc/odoo/odoo.conf
+          subPath: odoo.conf
+        # Les données Odoo
         - name: odoo-data
           mountPath: /var/lib/odoo
       volumes:
+      - name: odoo-config
+        configMap:
+          name: odoo-config
       - name: odoo-data
-        persistentVolumeClaim:
-          claimName: odoo-pvc
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-service
+  namespace: argocd
+spec:
+  type: ClusterIP  # Changé de NodePort à ClusterIP
+  selector:
+    app: odoo
+  ports:
+  - port: 8069
+    targetPort: 8069

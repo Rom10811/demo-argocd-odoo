@@ -1,0 +1,26 @@
+# odoo-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: odoo-config
+  namespace: argocd
+data:
+  odoo.conf: |
+    [options]
+    # Base de données
+    db_host = postgresql-service
+    db_port = 5432
+    db_user = odoo
+    db_password = odoo123
+
+    # Serveur
+    http_port = 8069
+    data_dir = /var/lib/odoo
+
+    # Admin
+    admin_passwd = admin123
+
+    # Autres
+    addons_path = /usr/lib/python3/dist-packages/odoo/addons
+    list_db = True
+    log_level = info
