@@ -24,9 +24,49 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: postgres-storage
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "odoo.fullname" . }}-postgres-pvc
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
       containers:
+        # Container PostgreSQL
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: "{{ .Values.database.name }}"
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "odoo.name" . }}
+                  key: USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "odoo.name" . }}
+                  key: PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+            initialDelaySeconds: 15
+            periodSeconds: 5
+        # Container Odoo
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
@@ -35,7 +75,7 @@ spec:
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
-              protocol: {{ .Values.service.protocol }}
+              protocol: TCP
           envFrom:
             - configMapRef:
                 name: {{ include "odoo.name" . }}
@@ -43,6 +83,18 @@ spec:
                 name: {{ include "odoo.name" . }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 30
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -14,18 +14,19 @@ fullnameOverride: ""
 
 serviceAccount:
   create: false
-  annotations: { }
+  annotations: {}
   name:
 
-podSecurityContext: { }
+podSecurityContext: {}
 
 securityContext:
   runAsUser: 101
 
 service:
-  type: NodePort
+  type: ClusterIP  # Changé de NodePort vers ClusterIP pour l'ingress
   targetPort: 8069
   port: 8069
+  # nodePort supprimé car on utilise l'ingress maintenant
 
 resources:
   limits:
@@ -35,23 +36,42 @@ resources:
     cpu: 150m
     memory: 512Mi
 
-nodeSelector: { }
+nodeSelector: {}
 
-tolerations: [ ]
+tolerations: []
 
-affinity: { }
+affinity: {}
 
 database:
-  repository_name: postgres
-  tag: 16.0
-  pullPolicy: Always
+  host: localhost  # PostgreSQL sera dans le même pod
   user: admin
-  password: cm9vdA==  # base64 encodé
+  password: cm9vdA==  # Votre mot de passe déjà encodé en base64
   name: odoo
-  storage: 10Gi
+
+# Nouvelles configurations
+postgres:
   resources:
     limits:
       memory: 512Mi
+      cpu: 500m
     requests:
-      cpu: 100m
+      cpu: 250m
       memory: 256Mi
+
+ingress:
+  enabled: true
+  className: "nginx"  # Ajustez selon votre ingress controller
+  host: "argo1.mokatourisme.dev"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Mettez true si vous voulez HTTPS
+    # nginx.ingress.kubernetes.io/cert-manager-cluster-issuer: "letsencrypt-prod"  # Si vous utilisez cert-manager
+  tls: []
+  # tls:
+  #   - secretName: odoo-tls
+  #     hosts:
+  #       - argo1.mokatourisme.dev
+
+persistence:
+  enabled: false  # Mettez true pour la production
+  size: 10Gi
+  storageClass: ""

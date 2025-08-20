@@ -5,3 +5,4 @@ metadata:
 data:
   HOST: {{ .Values.database.host }}
   USER: {{ .Values.database.user }}
+  DB_NAME: {{ .Values.database.name }}
