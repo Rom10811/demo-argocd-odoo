@@ -67,16 +67,17 @@ postgres:
 
 ingress:
   enabled: true
-  className: "nginx"  # Ajustez selon votre ingress controller
+  className: "traefik"
   host: "argo1.mokatourisme.dev"
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Mettez true si vous voulez HTTPS
-    # nginx.ingress.kubernetes.io/cert-manager-cluster-issuer: "letsencrypt-prod"  # Si vous utilisez cert-manager
-  tls: [ ]
-  # tls:
-  #   - secretName: odoo-tls
-  #     hosts:
-  #       - argo1.mokatourisme.dev
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - secretName: odoo-tls-cert
+      hosts:
+        - argo1.mokatourisme.dev
+
 
 persistence:
   enabled: true  # Mettez true pour la production
