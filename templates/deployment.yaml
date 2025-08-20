@@ -1,163 +1,37 @@
+# 2. Pod Odoo séparé
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "odoo.fullname" . }}
-  labels:
-    {{- include "odoo.labels" . | nindent 4 }}
+  name: odoo
+  namespace: argocd
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
-      {{- include "odoo.selectorLabels" . | nindent 6 }}
+      app: odoo
   template:
     metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
       labels:
-        {{- include "odoo.selectorLabels" . | nindent 8 }}
-        version: {{ .Values.image.tag | quote }}
+        app: odoo
     spec:
-      securityContext:
-        fsGroup: 101
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      volumes:
-        - name: postgres-storage
-          {{- if .Values.persistence.enabled }}
-          persistentVolumeClaim:
-            claimName: {{ include "odoo.fullname" . }}-postgres-pvc
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
-        - name: odoo-sessions
-          emptyDir: {}
-        - name: odoo-filestore
-          emptyDir: {}
-        - name: odoo-addons
-          emptyDir: {}
       containers:
-        # Container PostgreSQL
-        - name: postgres
-          image: postgres:15-alpine
-          env:
-            - name: POSTGRES_DB
-              value: {{ .Values.database.name | quote }}
-            - name: POSTGRES_USER
-              value: {{ .Values.database.user | quote }}
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "odoo.name" . }}
-                  key: PASSWORD
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-            - name: POSTGRES_HOST_AUTH_METHOD
-              value: "md5"
-            - name: POSTGRES_INITDB_ARGS
-              value: "--auth-host=md5"
-          ports:
-            - containerPort: 5432
-              name: postgres
-          volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
-          resources:
-            {{- toYaml .Values.postgres.resources | nindent 12 }}
-          readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - pg_isready -U {{ .Values.database.user }} -d {{ .Values.database.name }} -h 127.0.0.1 -p 5432
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - pg_isready -U {{ .Values.database.user }} -d {{ .Values.database.name }} -h 127.0.0.1 -p 5432
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 5
-            failureThreshold: 3
-
-        # Container Odoo
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 8069
-              protocol: TCP
-          env:
-            - name: HOST
-              value: "127.0.0.1"
-            - name: USER
-              value: {{ .Values.database.user | quote }}
-            - name: PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "odoo.name" . }}
-                  key: PASSWORD
-            - name: DB_NAME
-              value: {{ .Values.database.name | quote }}
-            # Variables d'environnement pour Odoo
-            - name: POSTGRES_HOST
-              value: "127.0.0.1"
-            - name: POSTGRES_PORT
-              value: "5432"
-            - name: POSTGRES_USER
-              value: {{ .Values.database.user | quote }}
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "odoo.name" . }}
-                  key: PASSWORD
-            - name: POSTGRES_DB
-              value: {{ .Values.database.name | quote }}
-          volumeMounts:
-            - name: odoo-sessions
-              mountPath: /var/lib/odoo/sessions
-            - name: odoo-filestore
-              mountPath: /var/lib/odoo/filestore
-            - name: odoo-addons
-              mountPath: /var/lib/odoo/addons
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          readinessProbe:
-            httpGet:
-              path: /web/health
-              port: http
-            initialDelaySeconds: 120
-            periodSeconds: 10
-            timeoutSeconds: 8
-            failureThreshold: 6
-          livenessProbe:
-            httpGet:
-              path: /web/health
-              port: http
-            initialDelaySeconds: 180
-            periodSeconds: 30
-            timeoutSeconds: 8
-            failureThreshold: 6
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      - name: odoo
+        image: odoo:18
+        env:
+        - name: HOST
+          value: postgresql-service
+        - name: PORT
+          value: "5432"
+        - name: USER
+          value: odoo
+        - name: PASSWORD
+          value: odoo123
+        ports:
+        - containerPort: 8069
+        volumeMounts:
+        - name: odoo-data
+          mountPath: /var/lib/odoo
+      volumes:
+      - name: odoo-data
+        persistentVolumeClaim:
+          claimName: odoo-pvc

@@ -1,0 +1,48 @@
+# 1. Pod PostgreSQL dédié
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  namespace: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgresql
+  template:
+    metadata:
+      labels:
+        app: postgresql
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        env:
+        - name: POSTGRES_DB
+          value: odoo
+        - name: POSTGRES_USER
+          value: odoo
+        - name: POSTGRES_PASSWORD
+          value: odoo123
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+# Service PostgreSQL
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-service
+  namespace: argocd
+spec:
+  selector:
+    app: postgresql
+  ports:
+  - port: 5432
+    targetPort: 5432
