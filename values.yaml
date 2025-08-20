@@ -14,13 +14,20 @@ fullnameOverride: ""
 
 serviceAccount:
   create: false
-  annotations: {}
+  annotations: { }
   name:
 
-podSecurityContext: {}
+podSecurityContext:
+  fsGroup: 101
+  runAsUser: 101
+  runAsGroup: 101
 
 securityContext:
   runAsUser: 101
+  runAsGroup: 101
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+
 
 service:
   type: ClusterIP  # Changé de NodePort vers ClusterIP pour l'ingress
@@ -36,11 +43,11 @@ resources:
     cpu: 150m
     memory: 512Mi
 
-nodeSelector: {}
+nodeSelector: { }
 
-tolerations: []
+tolerations: [ ]
 
-affinity: {}
+affinity: { }
 
 database:
   host: localhost  # PostgreSQL sera dans le même pod
@@ -65,13 +72,14 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"  # Mettez true si vous voulez HTTPS
     # nginx.ingress.kubernetes.io/cert-manager-cluster-issuer: "letsencrypt-prod"  # Si vous utilisez cert-manager
-  tls: []
+  tls: [ ]
   # tls:
   #   - secretName: odoo-tls
   #     hosts:
   #       - argo1.mokatourisme.dev
 
 persistence:
-  enabled: false  # Mettez true pour la production
+  enabled: true  # Mettez true pour la production
   size: 10Gi
   storageClass: ""
+
