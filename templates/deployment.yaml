@@ -19,6 +19,7 @@ spec:
         version: {{ .Values.image.tag | quote }}
     spec:
       securityContext:
+        fsGroup: 101  # Important pour les permissions de fichiers
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -30,8 +31,34 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "odoo.fullname" . }}-postgres-pvc
           {{- else }}
-          emptyDir: {}
+          emptyDir: { }
           {{- end }}
+        # Ajout de volumes pour Odoo
+        - name: odoo-sessions
+          emptyDir: { }
+        - name: odoo-filestore
+          emptyDir: { }
+        - name: odoo-addons
+          emptyDir: { }
+      initContainers:
+        # Init container pour fixer les permissions
+        - name: fix-permissions
+          image: busybox:1.35
+          command: [ 'sh', '-c' ]
+          args:
+            - |
+              mkdir -p /var/lib/odoo/sessions /var/lib/odoo/filestore /var/lib/odoo/addons
+              chown -R 101:101 /var/lib/odoo
+              chmod -R 755 /var/lib/odoo
+          volumeMounts:
+            - name: odoo-sessions
+              mountPath: /var/lib/odoo/sessions
+            - name: odoo-filestore
+              mountPath: /var/lib/odoo/filestore
+            - name: odoo-addons
+              mountPath: /var/lib/odoo/addons
+          securityContext:
+            runAsUser: 0  # Root pour pouvoir changer les permissions
       containers:
         # Container PostgreSQL
         - name: postgres
@@ -69,6 +96,9 @@ spec:
         # Container Odoo
         - name: {{ .Chart.Name }}
           securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+            allowPrivilegeEscalation: false
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -81,19 +111,26 @@ spec:
                 name: {{ include "odoo.name" . }}
             - secretRef:
                 name: {{ include "odoo.name" . }}
+          volumeMounts:
+            - name: odoo-sessions
+              mountPath: /var/lib/odoo/sessions
+            - name: odoo-filestore
+              mountPath: /var/lib/odoo/filestore
+            - name: odoo-addons
+              mountPath: /var/lib/odoo/addons
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /web/health
               port: http
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60  # Augmenté pour laisser le temps à Odoo de démarrer
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /web/health
               port: http
-            initialDelaySeconds: 60
+            initialDelaySeconds: 120  # Augmenté pour laisser le temps à Odoo de démarrer
             periodSeconds: 30
       {{- with .Values.nodeSelector }}
       nodeSelector:
