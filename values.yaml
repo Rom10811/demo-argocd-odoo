@@ -46,7 +46,7 @@ database:
   repository_name: postgres
   tag: 16.0
   pullPolicy: Always
-  host: postgres  # Changez en {{ include "odoo.name" . }}-postgresql
+  host: {{ include "odoo.name" . }}-postgresql
   user: admin
   password: cm9vdA==  # base64 encodé
   name: odoo
