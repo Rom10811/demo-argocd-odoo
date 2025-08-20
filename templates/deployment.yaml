@@ -39,42 +39,6 @@ spec:
           emptyDir: {}
         - name: odoo-addons
           emptyDir: {}
-      initContainers:
-        # Init container pour fixer les permissions
-        - name: fix-permissions
-          image: busybox:1.35
-          command: ['sh', '-c']
-          args:
-            - |
-              mkdir -p /var/lib/odoo/sessions /var/lib/odoo/filestore /var/lib/odoo/addons
-              chown -R 101:101 /var/lib/odoo
-              chmod -R 755 /var/lib/odoo
-          volumeMounts:
-            - name: odoo-sessions
-              mountPath: /var/lib/odoo/sessions
-            - name: odoo-filestore
-              mountPath: /var/lib/odoo/filestore
-            - name: odoo-addons
-              mountPath: /var/lib/odoo/addons
-          securityContext:
-            runAsUser: 0
-        # Init container pour attendre PostgreSQL
-        - name: wait-for-postgres
-          image: postgres:15-alpine
-          command: ['sh', '-c']
-          args:
-            - |
-              until pg_isready -h 127.0.0.1 -p 5432 -U {{ .Values.database.user }}; do
-                echo "En attente de PostgreSQL..."
-                sleep 2
-              done
-              echo "PostgreSQL est prêt!"
-          env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "odoo.name" . }}
-                  key: PASSWORD
       containers:
         # Container PostgreSQL
         - name: postgres
