@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository_name: odoo
-  tag: 16.0
+  tag: 18.0
   pullPolicy: Always
 
 nameOverride: ""
@@ -14,10 +14,10 @@ fullnameOverride: ""
 
 serviceAccount:
   create: false
-  annotations: {}
-  name: 
+  annotations: { }
+  name:
 
-podSecurityContext: {}
+podSecurityContext: { }
 
 securityContext:
   runAsUser: 101
@@ -36,13 +36,24 @@ resources:
     cpu: 150m
     memory: 512Mi
 
-nodeSelector: {}
+nodeSelector: { }
 
-tolerations: []
+tolerations: [ ]
 
-affinity: {}
+affinity: { }
 
 database:
-  host: postgres
+  repository_name: postgres
+  tag: 16.0
+  pullPolicy: Always
+  host: postgres  # Changez en {{ include "odoo.name" . }}-postgresql
   user: admin
-  password: cm9vdA==
+  password: cm9vdA==  # base64 encodé
+  name: odoo
+  storage: 10Gi
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
