@@ -25,7 +25,6 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "odoo.serviceAccountName" . }}
       volumes:
         - name: postgres-storage
           {{- if .Values.persistence.enabled }}
