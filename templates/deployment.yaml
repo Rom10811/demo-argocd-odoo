@@ -17,25 +17,6 @@ spec:
         {{- include "odoo.selectorLabels" . | nindent 8 }}
         client: {{ .Values.client.name }}
     spec:
-      initContainers:
-        - name: odoo-db-init
-          image: odoo:18.0
-          env:
-            - name: DB_NAME
-              value: "{{ .Values.database.name }}"
-          command:
-            - /bin/bash
-            - -c
-            - |
-              echo "Initialisation de la base de données ${DB_NAME}..."
-              /usr/bin/odoo -d "${DB_NAME}" -i base --no-xmlrpc --stop-after-init
-              echo "Base de données ${DB_NAME} initialisée avec succès !"
-          volumeMounts:
-            - name: odoo-config
-              mountPath: /etc/odoo/odoo.conf
-              subPath: odoo.conf
-            - name: odoo-data
-              mountPath: /var/lib/odoo
       containers:
         - name: odoo
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
