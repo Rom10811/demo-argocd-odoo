@@ -8,16 +8,16 @@ metadata:
     # Pour nginx-ingress
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    # Pour Let's Encrypt (optionnel)
+    # Pour Let's Encrypt
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
-  ingressClassName: nginx  # Adaptez selon votre ingress controller
+  ingressClassName: nginx
   tls:
   - hosts:
-    - argo1.mokatourisme.dev
+    - argo2.mokatourisme.dev  # Changé ici
     secretName: odoo-tls-secret
   rules:
-  - host: argo1.mokatourisme.dev
+  - host: argo2.mokatourisme.dev  # Et ici
     http:
       paths:
       - path: /
