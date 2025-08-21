@@ -1,0 +1,8 @@
+# namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.client.namespace }}
+  labels:
+    name: {{ .Values.client.namespace }}
+    app.kubernetes.io/managed-by: Helm
