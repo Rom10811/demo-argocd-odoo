@@ -1,18 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "odoo.fullname" . }}
-  namespace: {{ .Values.client.namespace }}  # 🎯 Ajout du namespace
-  labels:
-    {{- include "odoo.labels" . | nindent 4 }}
+  name: odoo-service-{{ .Values.client.name }}  # 🎯 Nom unique par client
+  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
 spec:
   type: {{ .Values.service.type }}
-  ports:
-    - protocol: TCP
-      port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
-      {{- if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
-      nodePort: {{ .Values.service.nodePort }}
-      {{- end }}
   selector:
-    {{- include "odoo.selectorLabels" . | nindent 4 }}
+    app: odoo
+    client: {{ .Values.client.name }}  # 🎯 Important pour le matching
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 8069
+      protocol: TCP

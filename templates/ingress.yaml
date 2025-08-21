@@ -5,6 +5,11 @@ metadata:
   name: odoo-ingress-{{ .Values.client.name }}
   namespace: {{ .Values.client.namespace | default .Release.Namespace }}
   annotations:
+    # NGINX spécifique pour Odoo 🎯
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/client-max-body-size: "100m"
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -28,7 +33,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: odoo-service
+                name: odoo-service-{{ .Values.client.name }}  # 🎯 Nom correct
                 port:
                   number: {{ .Values.service.port }}
 {{- end }}
