@@ -20,15 +20,6 @@ spec:
         - name: odoo-db-init
           image: odoo:16.0
           env:
-            - name: HOST
-              value: postgresql-service.argocd.svc.cluster.local
-            - name: USER
-              value: odoo
-            - name: PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgresql-secret
-                  key: postgres-password
             - name: DB_NAME
               value: "{{ .Values.database.name }}"  # 🎯 Changez ici le nom
           command:
