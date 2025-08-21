@@ -44,7 +44,7 @@ database:
   host: postgresql-service  # Sera templated
   user: admin
   password: cm9vdA==  # Base64 encoded
-  name: "argo3_odoo"  # Nom de la base = nom du client + _odoo
+  name: "argo3.mokatourisme.dev"  # Nom de la base = nom du client + _odoo
   # Le dbfilter doit correspondre exactement au nom de la base
   # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
 
