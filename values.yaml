@@ -1,12 +1,16 @@
-# Default values for Apm Ui.
+# Default values for Odoo
 # This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
 
 replicaCount: 1
 
+# Informations du client/projet
+client:
+  name: "romain"  # Nom du projet/client
+  namespace: "odoo-romain"  # Namespace dédié
+
 image:
   repository_name: odoo
-  tag: 18.0
+  tag: "18.0"
   pullPolicy: Always
 
 nameOverride: ""
@@ -28,34 +32,32 @@ securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
 
-
 service:
-  type: ClusterIP  # Changé de NodePort vers ClusterIP pour l'ingress
+  type: ClusterIP
   targetPort: 8069
   port: 8069
-  # nodePort supprimé car on utilise l'ingress maintenant
 
 resources:
   limits:
-    # cpu: 300m
     memory: 1024Mi
   requests:
     cpu: 150m
     memory: 512Mi
 
 nodeSelector: { }
-
 tolerations: [ ]
-
 affinity: { }
 
+# Configuration base de données
 database:
-  host: localhost  # PostgreSQL sera dans le même pod
+  host: postgresql-service  # Sera templated
   user: admin
-  password: cm9vdA==  # Votre mot de passe déjà encodé en base64
-  name: odoo
+  password: cm9vdA==  # Base64 encoded
+  name: "romain_odoo"  # Nom de la base = nom du client + _odoo
+  # Le dbfilter doit correspondre exactement au nom de la base
+  dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
 
-# Nouvelles configurations
+# Configuration PostgreSQL
 postgres:
   resources:
     limits:
@@ -65,10 +67,15 @@ postgres:
       cpu: 250m
       memory: 256Mi
 
+# Configuration Odoo
+odoo:
+  adminPassword: "YWRtaW4xMjM="  # admin123 en base64
+
+# Configuration Ingress
 ingress:
   enabled: true
   className: "traefik"
-  host: "argo1.mokatourisme.dev"
+  host: "romain.mokatourisme.dev"  # URL d'accès
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
@@ -76,11 +83,9 @@ ingress:
   tls:
     - secretName: odoo-tls-cert
       hosts:
-        - argo1.mokatourisme.dev
-
+        - "romain.mokatourisme.dev"
 
 persistence:
-  enabled: true  # Mettez true pour la production
+  enabled: true
   size: 10Gi
   storageClass: ""
-

@@ -1,46 +1,71 @@
-# 2. Pod Odoo séparé
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: odoo
+  name: odoo-{{ .Values.client.name }}
+  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: odoo
+      client: {{ .Values.client.name }}
   template:
     metadata:
       labels:
         app: odoo
+        client: {{ .Values.client.name }}
     spec:
+      # Attendre que PostgreSQL soit prêt
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:16
+        command: ['sh', '-c', 'until pg_isready -h postgresql-service -p 5432; do echo waiting for postgres; sleep 2; done;']
       containers:
       - name: odoo
-        image: odoo:18
+        image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 8069
+        env:
+        - name: HOST
+          value: {{ .Values.database.host }}
+        - name: USER
+          value: {{ .Values.database.user }}
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.client.name }}-secrets
+              key: db-password
         volumeMounts:
-        # Le fichier de config
         - name: odoo-config
           mountPath: /etc/odoo/odoo.conf
           subPath: odoo.conf
-        # Les données Odoo
         - name: odoo-data
           mountPath: /var/lib/odoo
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        securityContext:
+{{ toYaml .Values.securityContext | indent 10 }}
       volumes:
       - name: odoo-config
         configMap:
           name: odoo-config
       - name: odoo-data
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: odoo-pvc-{{ .Values.client.name }}
+      securityContext:
+{{ toYaml .Values.podSecurityContext | indent 8 }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: odoo-service
+  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
 spec:
-  type: ClusterIP  # Changé de NodePort à ClusterIP
+  type: {{ .Values.service.type }}
   selector:
     app: odoo
+    client: {{ .Values.client.name }}
   ports:
-  - port: 8069
-    targetPort: 8069
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetPort }}
