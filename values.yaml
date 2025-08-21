@@ -5,8 +5,8 @@ replicaCount: 1
 
 # Informations du client/projet
 client:
-  name: "romain"  # Nom du projet/client
-  namespace: "odoo-romain"  # Namespace dédié
+  name: "argo3"  # Nom du projet/client
+  namespace: "odoo-argo3"  # Namespace dédié
 
 image:
   repository_name: odoo
@@ -43,7 +43,7 @@ database:
   host: postgresql-service  # Sera templated
   user: admin
   password: cm9vdA==  # Base64 encoded
-  name: "romain_odoo"  # Nom de la base = nom du client + _odoo
+  name: "argo3_odoo"  # Nom de la base = nom du client + _odoo
   # Le dbfilter doit correspondre exactement au nom de la base
   # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
 
@@ -65,7 +65,7 @@ odoo:
 ingress:
   enabled: true
   className: "traefik"
-  host: "romain.mokatourisme.dev"  # URL d'accès
+  host: "argo3.mokatourisme.dev"  # URL d'accès
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
@@ -73,7 +73,7 @@ ingress:
   tls:
     - secretName: odoo-tls-cert
       hosts:
-        - "romain.mokatourisme.dev"
+        - "argo3.mokatourisme.dev"
 
 persistence:
   enabled: true
