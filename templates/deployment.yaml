@@ -42,16 +42,6 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8069
-          env:
-            - name: HOST
-              value: {{ .Values.database.host }}
-            - name: USER
-              value: {{ .Values.database.user }}
-            - name: PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.client.name }}-secrets
-                  key: db-password
           volumeMounts:
             - name: odoo-config
               mountPath: /etc/odoo/odoo.conf
