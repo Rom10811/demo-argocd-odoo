@@ -28,10 +28,7 @@ spec:
             - name: USER
               value: {{ .Values.database.user }}
             - name: PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.client.name }}-secrets
-                  key: db-password
+              value: odoo123
           command:
             - /bin/bash
             - -c
