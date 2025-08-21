@@ -19,15 +19,29 @@ spec:
       initContainers:
         - name: odoo-db-init
           image: odoo:18.0
+          securityContext:
+            runAsUser: 104  # UID de l'utilisateur odoo dans l'image
+            runAsGroup: 107 # GID du groupe odoo
+            runAsNonRoot: true
           env:
             - name: DB_NAME
-              value: "{{ .Values.database.name }}"  # 🎯 Changez ici le nom
+              value: "{{ .Values.database.name }}"
+            - name: HOST
+              value: postgresql-service.argocd.svc.cluster.local
+            - name: USER
+              value: odoo
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-secret
+                  key: postgres-password
           command:
             - /bin/bash
             - -c
             - |
               echo "Initialisation de la base de données ${DB_NAME}..."
-              /usr/bin/odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init
+              /usr/bin/odoo -d "${DB_NAME}" -i base --no-xmlrpc --stop-after-init \
+                --db_host=${HOST} --db_user=${USER} --db_password=${PASSWORD}
               echo "Base de données ${DB_NAME} initialisée avec succès !"
           volumeMounts:
             - name: odoo-config
