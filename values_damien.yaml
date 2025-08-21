@@ -1,0 +1,48 @@
+# Default values for Odoo
+replicaCount: 1
+
+# Informations du client/projet
+client:
+  host: "damien.mokatourisme.dev"
+  name: "damien"
+  namespace: "odoo-damien"  # 🎯 Cohérent avec votre déploiement
+
+image:
+  repository_name: odoo
+  tag: "18.0"
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  targetPort: 8069
+  port: 8069  # 🎯 Port du service = 80
+
+# Configuration base de données
+database:
+  host: postgresql-service
+  user: admin
+  password: cm9vdA==
+  name: "damien.mokatourisme.dev"  # 🎯 Sans points, avec underscores
+
+# Configuration Odoo
+odoo:
+  adminPassword: "YWRtaW4xMjM="
+
+# Configuration Ingress
+ingress:
+  enabled: true
+  className: "traefik"
+  host: "damien.mokatourisme.dev"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - secretName: odoo-tls-cert
+      hosts:
+        - "damien.mokatourisme.dev"
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
