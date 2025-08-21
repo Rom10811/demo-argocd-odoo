@@ -21,16 +21,16 @@ serviceAccount:
   annotations: { }
   name:
 
-podSecurityContext:
-  fsGroup: 101
-  runAsUser: 101
-  runAsGroup: 101
-
-securityContext:
-  runAsUser: 101
-  runAsGroup: 101
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: false
+#podSecurityContext:
+#  fsGroup: 101
+#  runAsUser: 101
+#  runAsGroup: 101
+#
+#securityContext:
+#  runAsUser: 101
+#  runAsGroup: 101
+#  allowPrivilegeEscalation: false
+#  readOnlyRootFilesystem: false
 
 service:
   type: ClusterIP
