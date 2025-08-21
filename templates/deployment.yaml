@@ -27,8 +27,7 @@ spec:
             - -c
             - |
               echo "Initialisation de la base de données ${DB_NAME}..."
-              /usr/bin/odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init \
-                --load-language=fr_FR --without-demo=all
+              /usr/bin/odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init
               echo "Base de données ${DB_NAME} initialisée avec succès !"
           volumeMounts:
             - name: odoo-config
