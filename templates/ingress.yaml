@@ -3,7 +3,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: odoo-ingress
-  namespace: argocd
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     traefik.ingress.kubernetes.io/router.tls: "true"
@@ -11,10 +10,10 @@ spec:
   ingressClassName: traefik  # Changé de nginx à traefik
   tls:
   - hosts:
-    - argo2.mokatourisme.dev
+    - damien.mokatourisme.dev
     secretName: odoo-tls-secret
   rules:
-  - host: argo2.mokatourisme.dev
+  - host: damien.mokatourisme.dev
     http:
       paths:
       - path: /
