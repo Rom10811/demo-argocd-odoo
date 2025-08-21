@@ -57,3 +57,16 @@ spec:
         - name: odoo-data
           persistentVolumeClaim:
             claimName: odoo-pvc-{{ .Values.client.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-service-{{ .Values.client.name }}
+  namespace: argocd
+spec:
+  type: ClusterIP  # Changé de NodePort à ClusterIP
+  selector:
+    app: odoo-{{ .Values.client.name }}
+  ports:
+    - port: 8069
+      targetPort: 8069
