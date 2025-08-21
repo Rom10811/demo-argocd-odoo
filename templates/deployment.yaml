@@ -16,39 +16,68 @@ spec:
         client: {{ .Values.client.name }}
     spec:
       # Attendre que PostgreSQL soit prêt
+      initContainers:
+        - name: odoo-db-init
+          image: odoo:16.0
+          env:
+            - name: HOST
+              value: postgresql-service.argocd.svc.cluster.local
+            - name: USER
+              value: odoo
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgresql-secret
+                  key: postgres-password
+            - name: DB_NAME
+              value: "{{ .Values.database.name }}"  # 🎯 Changez ici le nom
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Initialisation de la base de données ${DB_NAME}..."
+              /usr/bin/odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init \
+                --load-language=fr_FR --without-demo=all
+              echo "Base de données ${DB_NAME} initialisée avec succès !"
+          volumeMounts:
+            - name: odoo-config
+              mountPath: /etc/odoo/odoo.conf
+              subPath: odoo.conf
+            - name: odoo-data
+              mountPath: /var/lib/odoo
       containers:
-      - name: odoo
-        image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        ports:
-        - containerPort: 8069
-        env:
-        - name: HOST
-          value: {{ .Values.database.host }}
-        - name: USER
-          value: {{ .Values.database.user }}
-        - name: PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.client.name }}-secrets
-              key: db-password
-        volumeMounts:
-        - name: odoo-config
-          mountPath: /etc/odoo/odoo.conf
-          subPath: odoo.conf
-        - name: odoo-data
-          mountPath: /var/lib/odoo
-        resources:
+        - name: odoo
+          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8069
+          env:
+            - name: HOST
+              value: {{ .Values.database.host }}
+            - name: USER
+              value: {{ .Values.database.user }}
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-secrets
+                  key: db-password
+          volumeMounts:
+            - name: odoo-config
+              mountPath: /etc/odoo/odoo.conf
+              subPath: odoo.conf
+            - name: odoo-data
+              mountPath: /var/lib/odoo
+          resources:
 {{ toYaml .Values.resources | indent 10 }}
-        securityContext:
+          securityContext:
 {{ toYaml .Values.securityContext | indent 10 }}
       volumes:
-      - name: odoo-config
-        configMap:
-          name: odoo-config
-      - name: odoo-data
-        persistentVolumeClaim:
-          claimName: odoo-pvc-{{ .Values.client.name }}
+        - name: odoo-config
+          configMap:
+            name: odoo-config
+        - name: odoo-data
+          persistentVolumeClaim:
+            claimName: odoo-pvc-{{ .Values.client.name }}
       securityContext:
 {{ toYaml .Values.podSecurityContext | indent 8 }}
 ---
@@ -63,5 +92,5 @@ spec:
     app: odoo
     client: {{ .Values.client.name }}
   ports:
-  - port: {{ .Values.service.port }}
-    targetPort: {{ .Values.service.targetPort }}
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}

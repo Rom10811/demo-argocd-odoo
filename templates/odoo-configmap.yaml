@@ -13,7 +13,6 @@ data:
     db_password = {{ .Values.database.password | b64dec }}
 
     # Filtrage de base de données (sécurité importante)
-    dbfilter = {{ .Values.database.dbfilter }}
 
     # Serveur
     http_port = 8069
