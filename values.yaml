@@ -41,11 +41,11 @@ affinity: { }
 # Configuration base de données
 database:
   host: postgresql-service  # Sera templated
-  user: odoo
+  user: admin
   password: cm9vdA==  # Base64 encoded
   name: "romain_odoo"  # Nom de la base = nom du client + _odoo
   # Le dbfilter doit correspondre exactement au nom de la base
-  #  dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
+  # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
 
 # Configuration PostgreSQL
 postgres:
