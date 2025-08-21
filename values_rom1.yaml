@@ -15,7 +15,7 @@ image:
 service:
   type: ClusterIP
   targetPort: 8069
-  port: 80  # 🎯 Port du service = 80
+  port: 8069  # 🎯 Port du service = 80
 
 # Configuration base de données
 database:
