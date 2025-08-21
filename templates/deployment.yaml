@@ -69,5 +69,5 @@ spec:
     {{- include "odoo.selectorLabels" . | nindent 4 }}  # ✅ Même que le pod
     client: {{ .Values.client.name }}                   # ✅ Ajouter client
   ports:
-    - port: 80        # ✅ Port externe (pour l'Ingress)
+    - port: 8069        # ✅ Port externe (pour l'Ingress)
       targetPort: 8069 # ✅ Port du container Odoo
