@@ -1,26 +1,35 @@
-# odoo-ingress.yaml (version Traefik)
+# templates/ingress.yaml
+{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: odoo-ingress
-  namespace: argocd
+  name: odoo-ingress-{{ .Values.client.name }}
+  namespace: {{ .Values.client.namespace | default .Release.Namespace }}  # 🎯 Cohérent
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    traefik.ingress.kubernetes.io/router.tls: "true"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  ingressClassName: traefik  # Changé de nginx à traefik
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- if .Values.ingress.tls }}
   tls:
-  - hosts:
-    - rom1.mokatourisme.dev
-    secretName: odoo-tls-secret
+    {{- range .Values.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
   rules:
-  - host: rom1.mokatourisme.dev
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: odoo-service-rom1
-            port:
-              number: 8069
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: odoo-service-{{ .Values.client.name }}
+                port:
+                  number: {{ .Values.service.port }}  # 🎯 80, pas 8069 !
+{{- end }}

@@ -1,72 +1,38 @@
 # Default values for Odoo
-# This is a YAML-formatted file.
-
 replicaCount: 1
 
 # Informations du client/projet
 client:
-  host: "rom1.mokatourisme.dev"  # URL d'accès
-  name: "rom1"  # Nom du projet/client
-  namespace: "odoo-rom1"  # Namespace dédié
+  host: "rom1.mokatourisme.dev"
+  name: "rom1"
+  namespace: "argocd"  # 🎯 Cohérent avec votre déploiement
 
 image:
   repository_name: odoo
   tag: "18.0"
   pullPolicy: Always
 
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: false
-  annotations: { }
-  name:
-
-
 service:
   type: ClusterIP
   targetPort: 8069
-  port: 80
-
-resources:
-  limits:
-    memory: 1024Mi
-  requests:
-    cpu: 150m
-    memory: 512Mi
-
-nodeSelector: { }
-tolerations: [ ]
-affinity: { }
+  port: 80  # 🎯 Port du service = 80
 
 # Configuration base de données
 database:
-  host: postgresql-service  # Sera templated
+  host: postgresql-service
   user: admin
-  password: cm9vdA==  # Base64 encoded
-  name: "rom1.mokatourisme.dev"  # Nom de la base = nom du client + _odoo
-  # Le dbfilter doit correspondre exactement au nom de la base
-  # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
-
-# Configuration PostgreSQL
-postgres:
-  resources:
-    limits:
-      memory: 512Mi
-      cpu: 500m
-    requests:
-      cpu: 250m
-      memory: 256Mi
+  password: cm9vdA==
+  name: "rom1.mokatourisme.dev"  # 🎯 Sans points, avec underscores
 
 # Configuration Odoo
 odoo:
-  adminPassword: "YWRtaW4xMjM="  # admin123 en base64
+  adminPassword: "YWRtaW4xMjM="
 
 # Configuration Ingress
 ingress:
   enabled: true
   className: "traefik"
-  host: "rom1.mokatourisme.dev"  # URL d'accès
+  host: "rom1.mokatourisme.dev"
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
