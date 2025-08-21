@@ -23,5 +23,5 @@ data:
 
     # Autres
     addons_path = /usr/lib/python3/dist-packages/odoo/addons
-    list_db = False
+    list_db = True
     log_level = info
