@@ -20,7 +20,6 @@ data:
     db_user = {{ .Values.database.user }}
     db_name = {{ .Values.database.name }}
     db_password = odoo123
-    dbfilter = "%h"
 
     # Serveur web
     proxy_mode = True
