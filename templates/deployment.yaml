@@ -59,8 +59,6 @@ spec:
               mountPath: /var/lib/odoo
           resources:
 {{ toYaml .Values.resources | indent 10 }}
-          securityContext:
-{{ toYaml .Values.securityContext | indent 10 }}
       volumes:
         - name: odoo-config
           configMap:
@@ -68,8 +66,6 @@ spec:
         - name: odoo-data
           persistentVolumeClaim:
             claimName: odoo-pvc-{{ .Values.client.name }}
-      securityContext:
-{{ toYaml .Values.podSecurityContext | indent 8 }}
 ---
 apiVersion: v1
 kind: Service
