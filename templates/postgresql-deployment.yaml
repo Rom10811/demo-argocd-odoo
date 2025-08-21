@@ -36,7 +36,7 @@ spec:
         - name: postgres-data
           mountPath: /var/lib/postgresql/data
         resources:
-          {{ toYaml .Values.postgres.resources | indent 10 }}
+{{ toYaml .Values.postgres.resources | indent 10 }}
       volumes:
       - name: postgres-data
         persistentVolumeClaim:
