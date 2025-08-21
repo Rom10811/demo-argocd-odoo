@@ -16,10 +16,6 @@ spec:
         client: {{ .Values.client.name }}
     spec:
       # Attendre que PostgreSQL soit prêt
-      initContainers:
-      - name: wait-for-postgres
-        image: postgres:16
-        command: ['sh', '-c', 'until pg_isready -h postgresql-service -p 5432; do echo waiting for postgres; sleep 2; done;']
       containers:
       - name: odoo
         image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
