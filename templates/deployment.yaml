@@ -23,12 +23,22 @@ spec:
           env:
             - name: DB_NAME
               value: "{{ .Values.database.name }}"
+            - name: HOST
+              value: {{ .Values.database.host }}
+            - name: USER
+              value: {{ .Values.database.user }}
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-secrets
+                  key: db-password
           command:
             - /bin/bash
             - -c
             - |
               echo "Initialisation de la base de données ${DB_NAME}..."
-              /usr/bin/odoo -d "${DB_NAME}" -i base --no-xmlrpc --stop-after-init
+              odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init \
+              --db_host=${HOST} --db_user=${USER} --db_password=${PASSWORD}
               echo "Base de données ${DB_NAME} initialisée avec succès !"
           volumeMounts:
             - name: odoo-config
