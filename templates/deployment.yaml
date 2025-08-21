@@ -20,29 +20,22 @@ spec:
       initContainers:
         - name: odoo-db-init
           image: odoo:18.0
-          env:
-            - name: DB_NAME
-              value: "{{ .Values.database.name }}"
-            - name: HOST
-              value: {{ .Values.database.host }}
-            - name: USER
-              value: {{ .Values.database.user }}
-            - name: PASSWORD
-              value: odoo123
-          command:
-            - /bin/bash
-            - -c
-            - |
-              echo "Initialisation de la base de données ${DB_NAME}..."
-              odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init \
-              --db_host=${HOST} --db_user=${USER} --db_password=${PASSWORD}
-              echo "Base de données ${DB_NAME} initialisée avec succès !"
           volumeMounts:
             - name: odoo-config
               mountPath: /etc/odoo/odoo.conf
               subPath: odoo.conf
             - name: odoo-data
               mountPath: /var/lib/odoo
+          env:
+            - name: DB_NAME
+              value: "{{ .Values.database.name }}"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Initialisation de la base de données ${DB_NAME}..."
+              odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init
+              echo "Base de données ${DB_NAME} initialisée avec succès !"
       containers:
         - name: odoo
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
