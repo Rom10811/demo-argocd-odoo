@@ -5,34 +5,22 @@ metadata:
   name: odoo-ingress-{{ .Values.client.name }}
   namespace: {{ .Values.client.namespace | default .Release.Namespace }}
   annotations:
-    # NGINX spécifique pour Odoo 🎯
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-    nginx.ingress.kubernetes.io/client-max-body-size: "100m"
-    {{- with .Values.ingress.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
-  {{- if .Values.ingress.tls }}
+  ingressClassName: traefik  # Changé de nginx à traefik
   tls:
-    {{- range .Values.ingress.tls }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}-{{ $.Values.client.name }}
-    {{- end }}
-  {{- end }}
+  - hosts:
+    - rom1.mokatourisme.dev
+    secretName: odoo-tls-secret
   rules:
-    - host: {{ .Values.ingress.host | quote }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: odoo-service-{{ .Values.client.name }}  # 🎯 Nom correct
-                port:
-                  number: {{ .Values.service.port }}
+  - host: rom1.mokatourisme.dev
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: odoo-service-rom1
+            port:
+              number: 8069
