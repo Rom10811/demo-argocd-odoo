@@ -5,7 +5,7 @@ replicaCount: 1
 client:
   host: "rom1.mokatourisme.dev"
   name: "rom1"
-  namespace: "argocd"  # 🎯 Cohérent avec votre déploiement
+  namespace: "odoo-rom1"  # 🎯 Cohérent avec votre déploiement
 
 image:
   repository_name: odoo
