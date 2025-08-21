@@ -3,19 +3,20 @@ kind: Deployment
 metadata:
   name: odoo-{{ .Values.client.name }}
   namespace: {{ .Values.client.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "odoo.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: odoo
+      {{- include "odoo.selectorLabels" . | nindent 6 }}
       client: {{ .Values.client.name }}
   template:
     metadata:
       labels:
-        app: odoo
+        {{- include "odoo.selectorLabels" . | nindent 8 }}
         client: {{ .Values.client.name }}
     spec:
-      # Attendre que PostgreSQL soit prêt
       initContainers:
         - name: odoo-db-init
           image: odoo:18.0
@@ -58,7 +59,7 @@ spec:
             - name: odoo-data
               mountPath: /var/lib/odoo
           resources:
-{{ toYaml .Values.resources | indent 10 }}
+            {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: odoo-config
           configMap:
@@ -66,17 +67,3 @@ spec:
         - name: odoo-data
           persistentVolumeClaim:
             claimName: odoo-pvc-{{ .Values.client.name }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: odoo-service
-  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
-spec:
-  type: {{ .Values.service.type }}
-  selector:
-    app: odoo
-    client: {{ .Values.client.name }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}

@@ -1,16 +1,14 @@
-kind: ConfigMap
 apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: odoo-config  # 🎯 Nom plus explicite
-  namespace: {{ .Values.client.namespace }}       # 🎯 OBLIGATOIRE
+  name: odoo-config
+  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
   labels:
     {{- include "odoo.labels" . | nindent 4 }}
 data:
-  # Variables d'environnement
   HOST: {{ .Values.database.host | quote }}
   USER: {{ .Values.database.user | quote }}
 
-  # Configuration Odoo complète
   odoo.conf: |
     [options]
     addons_path = /mnt/extra-addons
