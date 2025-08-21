@@ -7,7 +7,6 @@ spec:
   type: {{ .Values.service.type }}
   selector:
     app: odoo
-    client: {{ .Values.client.name }}  # 🎯 Important pour le matching
   ports:
     - port: {{ .Values.service.port }}
       targetPort: 8069
