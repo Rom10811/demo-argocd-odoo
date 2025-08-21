@@ -19,10 +19,6 @@ spec:
       initContainers:
         - name: odoo-db-init
           image: odoo:18.0
-          securityContext:
-            runAsUser: 104  # UID de l'utilisateur odoo dans l'image
-            runAsGroup: 107 # GID du groupe odoo
-            runAsNonRoot: true
           env:
             - name: DB_NAME
               value: "{{ .Values.database.name }}"
