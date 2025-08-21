@@ -18,7 +18,7 @@ spec:
       # Attendre que PostgreSQL soit prêt
       initContainers:
         - name: odoo-db-init
-          image: odoo:16.0
+          image: odoo:18.0
           env:
             - name: DB_NAME
               value: "{{ .Values.database.name }}"  # 🎯 Changez ici le nom
