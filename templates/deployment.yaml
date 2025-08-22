@@ -74,3 +74,17 @@ spec:
         - name: odoo-data
           persistentVolumeClaim:
             claimName: odoo-pvc-{{ .Values.client.name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo-service-{{ .Values.client.name }}
+  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "odoo.selectorLabels" . | nindent 4 }}  # ✅ Même que le pod
+    client: {{ .Values.client.name }}                   # ✅ Ajouter client
+  ports:
+    - port: 8069        # ✅ Port externe (pour l'Ingress)
+      targetPort: 8069 # ✅ Port du container Odoo
