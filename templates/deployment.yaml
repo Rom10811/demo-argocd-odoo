@@ -21,43 +21,6 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.client.name }}-registry-secret  # 👈 AJOUTER ÇA
       {{- end }}
-      initContainers:
-        # ✅ 1. Attendre PostgreSQL
-        - name: wait-for-postgres
-          image: busybox:1.35
-          command:
-            - sh
-            - -c
-            - |
-              echo "Attente de PostgreSQL..."
-              until nc -z postgresql-service.{{ .Values.client.namespace | default .Release.Namespace }}.svc.cluster.local 5432; do
-                echo "PostgreSQL pas encore prêt, attente 2s..."
-                sleep 2
-              done
-              echo "PostgreSQL est prêt !"
-
-        # ✅ 2. Initialiser la DB Odoo
-        - name: odoo-db-init
-          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          volumeMounts:
-            - name: odoo-config
-              mountPath: /etc/odoo/odoo.conf
-              subPath: odoo.conf
-            - name: odoo-data
-              mountPath: /var/lib/odoo
-          env:
-            - name: DB_NAME
-              value: "{{ .Values.database.name }}"
-          command:
-            - /bin/bash
-            - -c
-            - |
-              echo "PostgreSQL confirmé prêt, initialisation de la base ${DB_NAME}..."
-              odoo -d ${DB_NAME} --init=base --load-language={{ .Values.client.language | default "fr_FR" }}  \
-              --no-xmlrpc --stop-after-init
-              echo "Base de données ${DB_NAME} initialisée avec succès !"
-
       containers:
         - name: odoo
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
@@ -65,6 +28,10 @@ spec:
           ports:
             - containerPort: 8069
           env:
+            - name: DB_NAME
+              value: "{{ .Values.database.name }}"
+            - name: LANGUAGE
+              value: "{{ .Values.client.language | default "fr_FR" }}"
             - name: PGHOST
               value: "postgresql-service"
             - name: PGPORT
@@ -75,6 +42,10 @@ spec:
               value: "odoo123"
             - name: PGTIMEOUT
               value: "30"
+            - name: MODULES
+              value: "{{.Values.client.modules | default "base" }}"
+            - name: ODOO_ARGS
+              value: "{{.Values.client.args | default "" }}"
           volumeMounts:
             - name: odoo-config
               mountPath: /etc/odoo/odoo.conf
