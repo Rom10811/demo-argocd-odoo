@@ -18,6 +18,21 @@ spec:
         client: {{ .Values.client.name }}
     spec:
       initContainers:
+        # ✅ 1. Attendre PostgreSQL
+        - name: wait-for-postgres
+          image: postgres:16
+          command:
+            - sh
+            - -c
+            - |
+              echo "Attente de PostgreSQL..."
+              until nc -z postgresql-service.{{ .Values.client.namespace | default .Release.Namespace }}.svc.cluster.local 5432; do
+                echo "PostgreSQL pas encore prêt, attente 2s..."
+                sleep 2
+              done
+              echo "PostgreSQL est prêt !"
+
+        # ✅ 2. Initialiser la DB Odoo
         - name: odoo-db-init
           image: odoo:18.0
           volumeMounts:
@@ -33,9 +48,10 @@ spec:
             - /bin/bash
             - -c
             - |
-              echo "Initialisation de la base de données ${DB_NAME}..."
+              echo "PostgreSQL confirmé prêt, initialisation de la base ${DB_NAME}..."
               odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init
               echo "Base de données ${DB_NAME} initialisée avec succès !"
+
       containers:
         - name: odoo
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
@@ -50,6 +66,7 @@ spec:
               mountPath: /var/lib/odoo
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+
       volumes:
         - name: odoo-config
           configMap:
@@ -57,17 +74,3 @@ spec:
         - name: odoo-data
           persistentVolumeClaim:
             claimName: odoo-pvc-{{ .Values.client.name }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: odoo-service-{{ .Values.client.name }}
-  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
-spec:
-  type: ClusterIP
-  selector:
-    {{- include "odoo.selectorLabels" . | nindent 4 }}  # ✅ Même que le pod
-    client: {{ .Values.client.name }}                   # ✅ Ajouter client
-  ports:
-    - port: 8069        # ✅ Port externe (pour l'Ingress)
-      targetPort: 8069 # ✅ Port du container Odoo
