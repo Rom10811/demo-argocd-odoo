@@ -8,6 +8,11 @@ metadata:
 data:
   HOST: {{ .Values.database.host | quote }}
   USER: {{ .Values.database.user | quote }}
+  PGHOST: "postgresql-service"
+  PGPORT: "5432"
+  PGUSER: {{ .Values.database.user | quote }}
+  PGPASSWORD: "odoo123"
+  DB_NAME: {{ .Values.database.name | quote }}
 
   odoo.conf: |
     [options]

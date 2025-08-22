@@ -8,6 +8,7 @@ client:
   host: "argo3.mokatourisme.dev"  # URL d'accès
   name: "argo3"  # Nom du projet/client
   namespace: "odoo-argo3"  # Namespace dédié
+  language: "fr_FR"  # Langue par défaut
 
 image:
   repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf

@@ -45,25 +45,13 @@ spec:
               subPath: odoo.conf
             - name: odoo-data
               mountPath: /var/lib/odoo
-          env:
-            - name: PGHOST
-              value: "postgresql-service"
-            - name: PGPORT
-              value: "5432"
-            - name: PGUSER
-              value: "{{ .Values.database.user }}"
-            - name: PGPASSWORD
-              value: "odoo123"
-            - name: PGTIMEOUT
-              value: "30"
-            - name: DB_NAME
-              value: "{{ .Values.database.name }}"
           command:
             - /bin/bash
             - -c
             - |
               echo "PostgreSQL confirmé prêt, initialisation de la base ${DB_NAME}..."
-              odoo -d ${DB_NAME} -i base --no-xmlrpc --stop-after-init
+              odoo -d ${DB_NAME} -i base --load-language={{ .Values.client.language | default "fr_FR" }}  \
+              --no-xmlrpc --stop-after-init
               echo "Base de données ${DB_NAME} initialisée avec succès !"
 
       containers:
@@ -78,19 +66,6 @@ spec:
               subPath: odoo.conf
             - name: odoo-data
               mountPath: /var/lib/odoo
-          env:
-            - name: PGHOST
-              value: "postgresql-service"
-            - name: PGPORT
-              value: "5432"
-            - name: PGUSER
-              value: "{{ .Values.database.user }}"
-            - name: PGPASSWORD
-              value: "odoo123"
-            - name: PGTIMEOUT
-              value: "30"
-            - name: DB_NAME
-              value: "{{ .Values.database.name }}"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
 
