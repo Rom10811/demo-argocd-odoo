@@ -38,7 +38,8 @@ spec:
 
         # ✅ 2. Initialiser la DB Odoo
         - name: odoo-db-init
-          image: odoo:18.0
+          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
             - name: odoo-config
               mountPath: /etc/odoo/odoo.conf
