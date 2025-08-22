@@ -10,7 +10,6 @@ client:
   namespace: "odoo-argo1"  # Namespace dédié
   language: "fr_FR"  # Langue par défaut
   modules: "base"  # Modules à installer par défaut
-  args: "--country=FR"
 
 image:
   repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
