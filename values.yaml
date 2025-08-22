@@ -13,7 +13,7 @@ client:
 
 image:
   repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
-  tag: "18.0"
+  tag: "18-argo"
   pullPolicy: Always
   registrySecret: |
     {
