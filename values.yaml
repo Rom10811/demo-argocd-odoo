@@ -5,9 +5,9 @@ replicaCount: 1
 
 # Informations du client/projet
 client:
-  host: "argo3.mokatourisme.dev"  # URL d'accès
-  name: "argo3"  # Nom du projet/client
-  namespace: "odoo-argo3"  # Namespace dédié
+  host: "argo1.mokatourisme.dev"  # URL d'accès
+  name: "argo1"  # Nom du projet/client
+  namespace: "odoo-argo1"  # Namespace dédié
   language: "fr_FR"  # Langue par défaut
   modules: "base,web,mail,contacts,sale,purchase,stock,account,project,hr"  # Modules à installer par défaut
 
@@ -55,7 +55,7 @@ database:
   host: postgresql-service  # Sera templated
   user: admin
   password: cm9vdA==  # Base64 encoded
-  name: "argo3.mokatourisme.dev"  # Nom de la base = nom du client + _odoo
+  name: "argo1.mokatourisme.dev"  # Nom de la base = nom du client + _odoo
   # Le dbfilter doit correspondre exactement au nom de la base
   # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
 
@@ -77,7 +77,7 @@ odoo:
 ingress:
   enabled: true
   className: "traefik"
-  host: "argo3.mokatourisme.dev"  # URL d'accès
+  host: "argo1.mokatourisme.dev"  # URL d'accès
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
@@ -85,7 +85,7 @@ ingress:
   tls:
     - secretName: odoo-tls-cert
       hosts:
-        - "argo3.mokatourisme.dev"
+        - "argo1.mokatourisme.dev"
 
 persistence:
   enabled: true
