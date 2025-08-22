@@ -10,9 +10,18 @@ client:
   namespace: "odoo-argo3"  # Namespace dédié
 
 image:
-  repository_name: odoo
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
   tag: "18.0"
   pullPolicy: Always
+  registrySecret: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZURFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+        }
+      }
+    }
+
 
 nameOverride: ""
 fullnameOverride: ""

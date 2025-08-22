@@ -17,6 +17,10 @@ spec:
         {{- include "odoo.selectorLabels" . | nindent 8 }}
         client: {{ .Values.client.name }}
     spec:
+      {{- if .Values.image.registrySecret }}
+      imagePullSecrets:
+        - name: {{ .Values.client.name }}-registry-secret  # 👈 AJOUTER ÇA
+      {{- end }}
       initContainers:
         # ✅ 1. Attendre PostgreSQL
         - name: wait-for-postgres
@@ -34,7 +38,7 @@ spec:
 
         # ✅ 2. Initialiser la DB Odoo
         - name: odoo-db-init
-          image: odoo:18.0
+          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
           volumeMounts:
             - name: odoo-config
               mountPath: /etc/odoo/odoo.conf
