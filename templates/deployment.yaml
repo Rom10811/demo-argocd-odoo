@@ -20,7 +20,7 @@ spec:
       initContainers:
         # ✅ 1. Attendre PostgreSQL
         - name: wait-for-postgres
-          image: postgres:16
+          image: busybox:1.35
           command:
             - sh
             - -c
