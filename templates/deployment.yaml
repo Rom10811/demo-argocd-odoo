@@ -46,6 +46,12 @@ spec:
             - name: odoo-data
               mountPath: /var/lib/odoo
           env:
+            - name: PGHOST
+              value: "postgresql-service"
+            - name: PGUSER
+              value: "{{ .Values.database.user }}"
+            - name: PGPASSWORD
+              value: odoo123
             - name: DB_NAME
               value: "{{ .Values.database.name }}"
           command:
