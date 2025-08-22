@@ -46,16 +46,6 @@ spec:
             - name: odoo-data
               mountPath: /var/lib/odoo
           env:
-            - name: PGHOST
-              value: "postgresql-service"
-            - name: PGPORT
-              value: "5432"
-            - name: PGUSER
-              value: "{{ .Values.database.user }}"
-            - name: PGPASSWORD
-              value: "odoo123"
-            - name: PGTIMEOUT
-              value: "30"
             - name: DB_NAME
               value: "{{ .Values.database.name }}"
           command:
@@ -73,6 +63,17 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8069
+          env:
+            - name: PGHOST
+              value: "postgresql-service"
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              value: "{{ .Values.database.user }}"
+            - name: PGPASSWORD
+              value: "odoo123"
+            - name: PGTIMEOUT
+              value: "30"
           volumeMounts:
             - name: odoo-config
               mountPath: /etc/odoo/odoo.conf
