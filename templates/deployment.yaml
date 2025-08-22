@@ -50,7 +50,7 @@ spec:
             - -c
             - |
               echo "PostgreSQL confirmé prêt, initialisation de la base ${DB_NAME}..."
-              odoo -d ${DB_NAME} -i base --load-language={{ .Values.client.language | default "fr_FR" }}  \
+              odoo -d ${DB_NAME} --init base --load-language={{ .Values.client.language | default "fr_FR" }}  \
               --no-xmlrpc --stop-after-init
               echo "Base de données ${DB_NAME} initialisée avec succès !"
 
