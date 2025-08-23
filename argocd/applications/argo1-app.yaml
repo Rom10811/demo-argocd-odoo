@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: odoo-argo1
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: odoo-platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Rom10811/demo-argocd-odoo.git
+    targetRevision: argo-app-of-apps
+    path: chart
+    helm:
+      valueFiles:
+        - ../environments/clients/argo1-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: odoo-argo1
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,49 @@
+# Valeurs pour le client argo1
+replicaCount: 1
+
+client:
+  name: "argo1"
+  host: "argo1.mokatourisme.dev"
+  namespace: "odoo-argo1"
+  modules: "base"
+  language: "fr_FR"
+
+image:
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
+  tag: "18-argo"
+  pullPolicy: Always
+  registrySecret: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZURFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+        }
+      }
+    }
+
+database:
+  host: postgresql-service
+  user: admin
+  password: cm9vdA==
+  name: "argo1.mokatourisme.dev"
+
+odoo:
+  adminPassword: "YWRtaW4xMjM="
+
+ingress:
+  enabled: true
+  className: "traefik"
+  host: "argo1.mokatourisme.dev"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "argo1--letsencrypt-prod"
+  tls:
+    - secretName: odoo-tls-cert
+      hosts:
+        - "argo1.mokatourisme.dev"
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
