@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/votre-org/odoo-platform.git
+    repoURL: https://github.com/Rom10811/demo-argocd-odoo.git
     targetRevision: HEAD
     path: chart
     helm:
