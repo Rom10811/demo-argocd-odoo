@@ -1,0 +1,41 @@
+# Valeurs pour le client argo2
+replicaCount: 1
+
+client:
+  name: "argo2"
+  host: "argo2.mokatourisme.dev"
+  namespace: "odoo-argo2"
+  modules: "base"
+  language: "fr_FR"
+
+image:
+  repository_name: odoo
+  tag: "18-argo"
+  pullPolicy: Always
+
+database:
+  host: postgresql-service
+  user: admin
+  password: cm9vdA==
+  name: "argo2.mokatourisme.dev"
+
+odoo:
+  adminPassword: "YWRtaW4xMjM="
+
+ingress:
+  enabled: true
+  className: "traefik"
+  host: "argo2.mokatourisme.dev"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "argo2--letsencrypt-prod"
+  tls:
+    - secretName: odoo-tls-cert
+      hosts:
+        - "argo2.mokatourisme.dev"
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
