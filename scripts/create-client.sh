@@ -33,9 +33,17 @@ client:
   language: "fr_FR"
 
 image:
-  repository_name: odoo
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
   tag: "$ODOO_VERSION"
   pullPolicy: Always
+  registrySecret: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZURFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+        }
+      }
+    }
 
 database:
   host: postgresql-service
@@ -77,8 +85,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/votre-org/odoo-platform.git
-    targetRevision: HEAD
+    repoURL: https://github.com/Rom10811/demo-argocd-odoo.git
+    targetRevision: argo-app-of-apps
     path: chart
     helm:
       valueFiles:
