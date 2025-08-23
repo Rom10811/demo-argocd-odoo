@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Rom10811/demo-argocd-odoo.git
-    targetRevision: HEAD
+    targetRevision: argo-app-of-apps
     path: chart
     helm:
       valueFiles:
