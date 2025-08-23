@@ -19,7 +19,7 @@ spec:
     spec:
       {{- if .Values.image.registrySecret }}
       imagePullSecrets:
-        - name: {{ .Values.client.name }}-registry-secret  # 👈 AJOUTER ÇA
+        - name: {{ .Values.client.name }}-registry-secret
       {{- end }}
       containers:
         - name: odoo
@@ -43,9 +43,9 @@ spec:
             - name: PGTIMEOUT
               value: "30"
             - name: MODULES
-              value: "{{.Values.client.modules | default "base" }}"
+              value: "{{ .Values.client.modules | default "base" }}"
             - name: ODOO_ARGS
-              value: "{{.Values.client.args | default "" }}"
+              value: "{{ .Values.client.args | default "" }}"
           volumeMounts:
             - name: odoo-config
               mountPath: /etc/odoo/odoo.conf
@@ -54,7 +54,6 @@ spec:
               mountPath: /var/lib/odoo
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-
       volumes:
         - name: odoo-config
           configMap:
@@ -71,8 +70,8 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    {{- include "odoo.selectorLabels" . | nindent 4 }}  # ✅ Même que le pod
-    client: {{ .Values.client.name }}                   # ✅ Ajouter client
+    {{- include "odoo.selectorLabels" . | nindent 4 }}
+    client: {{ .Values.client.name }}
   ports:
-    - port: 8069        # ✅ Port externe (pour l'Ingress)
-      targetPort: 8069 # ✅ Port du container Odoo
+    - port: 8069
+      targetPort: 8069

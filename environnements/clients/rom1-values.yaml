@@ -3,14 +3,22 @@ replicaCount: 1
 
 # Informations du client/projet
 client:
-  host: "damien.mokatourisme.dev"
-  name: "damien"
-  namespace: "odoo-damien"  # 🎯 Cohérent avec votre déploiement
+  host: "rom1.mokatourisme.dev"
+  name: "rom1"
+  namespace: "odoo-rom1"  # 🎯 Cohérent avec votre déploiement
 
 image:
-  repository_name: odoo
-  tag: "18.0"
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
+  tag: "18-argo"
   pullPolicy: Always
+  registrySecret: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZURFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+        }
+      }
+    }
 
 service:
   type: ClusterIP
@@ -22,7 +30,7 @@ database:
   host: postgresql-service
   user: admin
   password: cm9vdA==
-  name: "damien.mokatourisme.dev"  # 🎯 Sans points, avec underscores
+  name: "rom1.mokatourisme.dev"  # 🎯 Sans points, avec underscores
 
 # Configuration Odoo
 odoo:
@@ -32,7 +40,7 @@ odoo:
 ingress:
   enabled: true
   className: "traefik"
-  host: "damien.mokatourisme.dev"
+  host: "rom1.mokatourisme.dev"
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
@@ -40,7 +48,7 @@ ingress:
   tls:
     - secretName: odoo-tls-cert
       hosts:
-        - "damien.mokatourisme.dev"
+        - "rom1.mokatourisme.dev"
 
 persistence:
   enabled: true
