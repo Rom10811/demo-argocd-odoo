@@ -27,7 +27,7 @@ replicaCount: 1
 
 client:
   name: "$CLIENT_NAME"
-  host: "$CLIENT_NAME.mokatourisme.dev"
+  host: "$DB_NAME"
   namespace: "odoo-$CLIENT_NAME"
   modules: "$MODULES"
   language: "fr_FR"
@@ -57,7 +57,7 @@ odoo:
 ingress:
   enabled: true
   className: "traefik"
-  host: "$CLIENT_NAME.mokatourisme.dev"
+  host: "$DB_NAME"
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
@@ -65,7 +65,7 @@ ingress:
   tls:
     - secretName: odoo-tls-cert
       hosts:
-        - "$CLIENT_NAME.mokatourisme.dev"
+        - "$DB_NAME"
 
 persistence:
   enabled: true
