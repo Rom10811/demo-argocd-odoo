@@ -48,23 +48,23 @@ persistence:
   size: 10Gi
   storageClass: ""
 
-  postgres:
-    cluster:
-      instances: 2
-      storage:
-        size: 30Gi
-    resources:
-      limits:
-        memory: 1Gi
-        cpu: 1000m
-      requests:
-        cpu: 500m
-        memory: 512Mi
-
+postgres:
+  cluster:
+    instances: 2
+    storage:
+      size: 30Gi
   resources:
     limits:
-      memory: 2Gi
+      memory: 1Gi
       cpu: 1000m
     requests:
-      cpu: 300m
-      memory: 1Gi
+      cpu: 500m
+      memory: 512Mi
+
+resources:
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+  requests:
+    cpu: 300m
+    memory: 1Gi

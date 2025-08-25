@@ -1,5 +1,4 @@
 # templates/postgresql-cnpg.yaml
-{{- if .Values.postgresql.cnpg.enabled }}
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -16,4 +15,3 @@ spec:
   storage:
     size: {{ .Values.postgresql.cnpg.storage.size }}
     storageClass: {{ .Values.postgresql.cnpg.storage.class }}
-{{- end }}
