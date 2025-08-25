@@ -1,0 +1,21 @@
+# templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.client.name }}-odoo
+  namespace: {{ .Values.client.namespace }}
+  labels:
+    app: {{ .Values.client.name }}-odoo
+    client: {{ .Values.client.name }}
+    component: odoo
+spec:
+  type: {{ .Values.service.type | default "ClusterIP" }}
+  ports:
+    - port: {{ .Values.service.port | default 8069 }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.client.name }}-odoo
+    client: {{ .Values.client.name }}
+    component: odoo

@@ -1,6 +1,27 @@
 # Valeurs pour le client automobile
 replicaCount: 1
 
+# Configuration simple : stockage local
+storage:
+  class: "premium-ssd"  # ou "standard"
+
+  # NOUVEAU : Configuration CloudNativePG
+postgresql:
+  # Garder l'ancien pour rétro-compatibilité
+  enabled: true
+
+  # Nouveau : CloudNativePG
+  cnpg:
+    enabled: true  # Activer CloudNativePG
+    instances: 3
+    storage:
+      size: "50Gi"
+      class: "premium-ssd"
+    backup:
+      enabled: false  # Pour commencer simple
+    monitoring:
+      enabled: true
+
 client:
   name: "automobile"
   host: "automobile.duciel.cloud"
@@ -47,3 +68,5 @@ persistence:
   enabled: true
   size: 10Gi
   storageClass: ""
+
+environment: "development"

@@ -1,0 +1,19 @@
+# templates/postgresql-cnpg.yaml
+{{- if .Values.postgresql.cnpg.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-{{ .Values.client.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  instances: {{ .Values.postgresql.cnpg.instances | default 3 }}
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgresql.database }}
+      owner: {{ .Values.postgresql.username }}
+      secret:
+        name: {{ .Values.client.name }}-postgres-credentials
+  storage:
+    size: {{ .Values.postgresql.cnpg.storage.size }}
+    storageClass: {{ .Values.postgresql.cnpg.storage.class }}
+{{- end }}

@@ -1,77 +1,97 @@
+# templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: odoo-{{ .Values.client.name }}
-  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
+  name: {{ .Values.client.name }}-odoo
+  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "odoo.labels" . | nindent 4 }}
+    app: {{ .Values.client.name }}-odoo
+    client: {{ .Values.client.name }}
+    component: odoo
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount | default 1 }}
   selector:
     matchLabels:
-      {{- include "odoo.selectorLabels" . | nindent 6 }}
+      app: {{ .Values.client.name }}-odoo
       client: {{ .Values.client.name }}
+      component: odoo
   template:
     metadata:
       labels:
-        {{- include "odoo.selectorLabels" . | nindent 8 }}
+        app: {{ .Values.client.name }}-odoo
         client: {{ .Values.client.name }}
+        component: odoo
     spec:
-      {{- if .Values.image.registrySecret }}
-      imagePullSecrets:
-        - name: {{ .Values.client.name }}-registry-secret
-      {{- end }}
       containers:
         - name: odoo
-          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
           ports:
-            - containerPort: 8069
+            - name: http
+              containerPort: 8069
+              protocol: TCP
           env:
-            - name: DB_NAME
-              value: "{{ .Values.database.name }}"
-            - name: LANGUAGE
-              value: "{{ .Values.client.language | default "fr_FR" }}"
-            - name: PGHOST
-              value: "postgresql-service"
-            - name: PGPORT
+            # CloudNativePG - Connexion via le service du cluster
+            - name: POSTGRES_HOST
+              value: {{ .Values.client.name }}-postgres-rw  # Service read-write CloudNativePG
+            - name: POSTGRES_PORT
               value: "5432"
-            - name: PGUSER
-              value: "{{ .Values.database.user }}"
-            - name: PGPASSWORD
-              value: "odoo123"
-            - name: PGTIMEOUT
-              value: "30"
-            - name: MODULES
-              value: "{{ .Values.client.modules | default "base" }}"
-            - name: ODOO_ARGS
-              value: "{{ .Values.client.args | default "" }}"
+            - name: POSTGRES_DB
+              value: {{ .Values.client.name }}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-postgres-app  # Secret généré par CloudNativePG
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-postgres-app  # Secret généré par CloudNativePG
+                  key: password
+            # Optionnel: URL complète de connexion PostgreSQL
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-postgres-app
+                  key: uri
           volumeMounts:
-            - name: odoo-config
-              mountPath: /etc/odoo/odoo.conf
-              subPath: odoo.conf
-            - name: odoo-data
-              mountPath: /var/lib/odoo
+            - name: filestore
+              mountPath: /var/lib/odoo/filestore
+            - name: addons
+              mountPath: /mnt/extra-addons
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 300 }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds | default 30 }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 5 }}
+          readinessProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 30 }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds | default 10 }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds | default 5 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-        - name: odoo-config
-          configMap:
-            name: odoo-config
-        - name: odoo-data
+        - name: filestore
           persistentVolumeClaim:
-            claimName: odoo-pvc-{{ .Values.client.name }}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: odoo-service-{{ .Values.client.name }}
-  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
-spec:
-  type: ClusterIP
-  selector:
-    {{- include "odoo.selectorLabels" . | nindent 4 }}
-    client: {{ .Values.client.name }}
-  ports:
-    - port: 8069
-      targetPort: 8069
+            claimName: {{ .Values.client.name }}-odoo-filestore
+        - name: addons
+          configMap:
+            name: {{ .Values.client.name }}-odoo-addons
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
