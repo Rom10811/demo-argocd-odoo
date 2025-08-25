@@ -9,9 +9,9 @@ metadata:
     client: {{ .Values.client.name }}
     component: odoo
 spec:
-  type: "ClusterIP"
+  type: {{ .Values.service.type | default "ClusterIP" }}
   ports:
-    - port: 8069
+    - port: {{ .Values.service.port | default 8069 }}
       targetPort: http
       protocol: TCP
       name: http

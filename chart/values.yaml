@@ -1,12 +1,15 @@
-# Valeurs pour le client automobile
+# Default values for Odoo
+# This is a YAML-formatted file.
+
 replicaCount: 1
 
+# Informations du client/projet
 client:
-  name: "automobile"
-  host: "automobile.duciel.cloud"
-  namespace: "odoo-automobile"
-  modules: "event,sale,crm"
-  language: "fr_FR"
+  host: "argo2.mokatourisme.dev"  # URL d'accès
+  name: "argo2"  # Nom du projet/client
+  namespace: "odoo-argo2"  # Namespace dédié
+  language: "fr_FR"  # Langue par défaut
+  modules: "base"  # Modules à installer par défaut
 
 image:
   repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
@@ -21,50 +24,70 @@ image:
       }
     }
 
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: { }
+  name:
+
+
+service:
+  type: ClusterIP
+  targetPort: 8069
+  port: 8069
+
+resources:
+  limits:
+    memory: 1024Mi
+  requests:
+    cpu: 150m
+    memory: 512Mi
+
+nodeSelector: { }
+tolerations: [ ]
+affinity: { }
+
+# Configuration base de données
 database:
-  host: postgresql-service
+  host: postgresql-service  # Sera templated
   user: admin
-  password: cm9vdA==
-  name: "automobile.duciel.cloud"
+  password: cm9vdA==  # Base64 encoded
+  name: "argo2.mokatourisme.dev"  # Nom de la base = nom du client + _odoo
+  # Le dbfilter doit correspondre exactement au nom de la base
+  # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
 
+# Configuration PostgreSQL
+postgres:
+  resources:
+    limits:
+      memory: 512Mi
+      cpu: 500m
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+# Configuration Odoo
 odoo:
-  adminPassword: "YWRtaW4xMjM="
+  adminPassword: "YWRtaW4xMjM="  # admin123 en base64
 
+# Configuration Ingress
 ingress:
   enabled: true
   className: "traefik"
-  host: "automobile.duciel.cloud"
+  host: "argo2.mokatourisme.dev"  # URL d'accès
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "automobile--letsencrypt-prod"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
   tls:
     - secretName: odoo-tls-cert
       hosts:
-        - "automobile.duciel.cloud"
+        - "argo2.mokatourisme.dev"
 
 persistence:
   enabled: true
   size: 10Gi
   storageClass: ""
-
-postgres:
-  cluster:
-    instances: 2
-    storage:
-      size: 30Gi
-  resources:
-    limits:
-      memory: 1Gi
-      cpu: 1000m
-    requests:
-      cpu: 500m
-      memory: 512Mi
-
-resources:
-  limits:
-    memory: 2Gi
-    cpu: 1000m
-  requests:
-    cpu: 300m
-    memory: 1Gi
