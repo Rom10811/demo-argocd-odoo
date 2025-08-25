@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: odoo-automobile
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: odoo-platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Rom10811/demo-argocd-odoo.git
+    targetRevision: argo-app-of-apps
+    path: chart
+    helm:
+      valueFiles:
+        - ../environments/clients/automobile-values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: odoo-automobile
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
