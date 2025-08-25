@@ -23,6 +23,9 @@ image:
       }
     }
 
+imagePullSecrets:
+  - name: rom3-registry-secret
+
 # ✅ Configuration database (sera remplacée par PostgreSQL CNPG)
 database:
   host: "rom3-postgres-rw"
