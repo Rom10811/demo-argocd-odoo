@@ -51,7 +51,7 @@ persistence:
 # Configuration PostgreSQL CloudNativePG avec version 16
 postgres:
   cluster:
-    instances: 2
+    instances: 1
     storage:
       size: 20Gi
       storageClass: ""
