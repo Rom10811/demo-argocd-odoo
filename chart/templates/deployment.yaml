@@ -71,8 +71,7 @@ spec:
                 db_port = 5432
                 db_user = odoo
                 db_password = $(POSTGRES_PASSWORD)
-                dbfilter = ^{{ .Values.client.name }}$
-                list_db = False
+                list_db = True
                 proxy_mode = True
           volumeMounts:
             - name: filestore
