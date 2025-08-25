@@ -1,0 +1,54 @@
+# templates/odoo-init-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.client.name }}-odoo-init
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      imagePullSecrets:
+        - name: {{ .Values.client.name }}-registry-secret
+      containers:
+        - name: odoo-init
+          image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Initializing Odoo database..."
+              odoo -d {{ .Values.client.name }} \
+                   -i {{ .Values.client.modules | default "base" }} \
+                   --stop-after-init \
+                   --without-demo=all \
+                   --load-language={{ .Values.client.language | default "fr_FR" }}
+              echo "Database initialized successfully!"
+          env:
+            - name: POSTGRES_HOST
+              value: {{ .Values.client.name }}-postgres-rw
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-postgres-app
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-postgres-app
+                  key: password
+            - name: POSTGRES_DB
+              value: {{ .Values.client.name }}
+          volumeMounts:
+            - name: filestore
+              mountPath: /var/lib/odoo/filestore
+      volumes:
+        - name: filestore
+          persistentVolumeClaim:
+            claimName: {{ .Values.client.name }}-odoo-filestore

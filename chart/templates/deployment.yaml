@@ -4,26 +4,37 @@ kind: Deployment
 metadata:
   name: {{ .Values.client.name }}-odoo
   namespace: {{ .Release.Namespace }}
-  labels:
-    app: {{ .Values.client.name }}-odoo
-    client: {{ .Values.client.name }}
-    component: odoo
 spec:
   replicas: {{ .Values.replicaCount | default 1 }}
   selector:
     matchLabels:
       app: {{ .Values.client.name }}-odoo
-      client: {{ .Values.client.name }}
-      component: odoo
   template:
     metadata:
       labels:
         app: {{ .Values.client.name }}-odoo
-        client: {{ .Values.client.name }}
-        component: odoo
     spec:
       imagePullSecrets:
-        - name: {{.Values.client.name}}-registry-secret
+        - name: {{ .Values.client.name }}-registry-secret
+      # ✅ Attendre que PostgreSQL soit prêt
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h {{ .Values.client.name }}-postgres-rw -p 5432 -U odoo; do
+                echo "Waiting for PostgreSQL..."
+                sleep 5
+              done
+              echo "PostgreSQL is ready!"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-postgres-app
+                  key: password
       containers:
         - name: odoo
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -33,41 +44,59 @@ spec:
               containerPort: 8069
               protocol: TCP
           env:
-            # CloudNativePG - Connexion via le service du cluster
-            - name: HOST
+            # ✅ Variables Odoo standard
+            - name: POSTGRES_HOST
               value: {{ .Values.client.name }}-postgres-rw
-            - name: PORT
+            - name: POSTGRES_PORT
               value: "5432"
-            - name: USER
+            - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.client.name }}-postgres-app
                   key: username
-            - name: PASSWORD
+            - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.client.name }}-postgres-app
                   key: password
-            - name: DB_NAME
+            - name: POSTGRES_DB
               value: {{ .Values.client.name }}
+            # ✅ Configuration Odoo
+            - name: ODOO_RC
+              value: |
+                [options]
+                addons_path = /mnt/extra-addons
+                data_dir = /var/lib/odoo
+                db_host = {{ .Values.client.name }}-postgres-rw
+                db_port = 5432
+                db_user = odoo
+                db_password = $(POSTGRES_PASSWORD)
+                dbfilter = ^{{ .Values.client.name }}$
+                list_db = False
+                proxy_mode = True
           volumeMounts:
             - name: filestore
               mountPath: /var/lib/odoo/filestore
+          # ✅ Probes corrigées
+          livenessProbe:
+            httpGet:
+              path: /web/health
+              port: http
+            initialDelaySeconds: 300
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /web/database/selector
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: filestore
           persistentVolumeClaim:
-            claimName: {{ .Values.client.name }}-odoo-filestore  # ✅ Nom cohérent
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+            claimName: {{ .Values.client.name }}-odoo-filestore

@@ -48,25 +48,33 @@ persistence:
   size: 10Gi
   storageClass: ""
 
-# Configuration PostgreSQL CloudNativePG
+# Configuration PostgreSQL CloudNativePG avec version 16
 postgres:
   cluster:
     instances: 2
     storage:
       size: 20Gi
       storageClass: ""
+    # ✅ Version PostgreSQL 16
+    imageName: "ghcr.io/cloudnative-pg/postgresql:16"
   resources:
     limits:
-      memory: 512Mi
-      cpu: 500m
+      memory: 1Gi
+      cpu: 1000m
     requests:
-      cpu: 250m
-      memory: 256Mi
+      cpu: 500m
+      memory: 512Mi
 
-resources:
-  limits:
-    memory: 2Gi
-    cpu: 1000m
-  requests:
-    cpu: 300m
-    memory: 1Gi
+# ✅ Configuration Odoo avec probes corrigées
+livenessProbe:
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
