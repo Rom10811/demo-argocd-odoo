@@ -65,16 +65,4 @@ postgres:
       cpu: 500m
       memory: 512Mi
 
-# ✅ Configuration Odoo avec probes corrigées
-livenessProbe:
-  initialDelaySeconds: 300
-  periodSeconds: 30
-  timeoutSeconds: 10
-  failureThreshold: 3
-
-readinessProbe:
-  initialDelaySeconds: 60
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
 
