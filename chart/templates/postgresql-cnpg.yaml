@@ -1,4 +1,4 @@
-# templates/postgresql-cnpg.yaml (version simplifiée)
+# templates/postgresql-cnpg.yaml
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -10,13 +10,15 @@ spec:
   # ✅ Version PostgreSQL 16
   imageName: ghcr.io/cloudnative-pg/postgresql:16
 
-  # ✅ Bootstrap simplifié
+  # ✅ Bootstrap avec locales forcées
   bootstrap:
     initdb:
       database: {{ .Values.client.name }}
       owner: odoo
       encoding: UTF8
-      # ✅ Pas de locales spécifiques = utilise les defaults système
+      # ✅ FORCER les locales compatibles
+      localeCollate: C
+      localeCType: C
       secret:
         name: {{ .Values.client.name }}-postgres-superuser
 
@@ -32,6 +34,11 @@ spec:
       max_connections: "200"
       shared_buffers: "128MB"
       effective_cache_size: "512MB"
+      # ✅ Configuration locale PostgreSQL
+      lc_messages: C
+      lc_monetary: C
+      lc_numeric: C
+      lc_time: C
 
   resources:
     {{- toYaml .Values.postgres.resources | nindent 4 }}
