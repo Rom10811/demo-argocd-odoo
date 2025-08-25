@@ -1,4 +1,4 @@
-# templates/postgresql-cnpg.yaml
+# templates/postgresql-cnpg.yaml (version simplifiée)
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -6,21 +6,19 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   instances: {{ .Values.postgres.cluster.instances | default 2 }}
-  # Configuration du bootstrap
+
+  # ✅ Version PostgreSQL 16
+  imageName: ghcr.io/cloudnative-pg/postgresql:16
+
+  # ✅ Bootstrap simplifié
   bootstrap:
     initdb:
       database: {{ .Values.client.name }}
       owner: odoo
       encoding: UTF8
-      localeCollate: fr_FR.UTF-8
-      localeCType: fr_FR.UTF-8
+      # ✅ Pas de locales spécifiques = utilise les defaults système
       secret:
         name: {{ .Values.client.name }}-postgres-superuser
-      # ✅ Création automatique de l'utilisateur app
-      postInitApplicationSQL:
-        - CREATE USER odoo WITH PASSWORD 'odoo123';
-        - GRANT ALL PRIVILEGES ON DATABASE {{ .Values.client.name }} TO odoo;
-        - ALTER USER odoo CREATEDB;
 
   # Configuration du stockage
   storage:
@@ -29,26 +27,16 @@ spec:
     storageClass: {{ .Values.postgres.cluster.storage.storageClass }}
     {{- end }}
 
-  # ✅ Monitoring et logging
-  monitoring:
-    enabled: true
-
   postgresql:
     parameters:
       max_connections: "200"
       shared_buffers: "128MB"
       effective_cache_size: "512MB"
-      maintenance_work_mem: "64MB"
-      checkpoint_completion_target: "0.9"
-      wal_buffers: "16MB"
-      default_statistics_target: "100"
 
-  # Ressources
   resources:
     {{- toYaml .Values.postgres.resources | nindent 4 }}
 
 ---
-# ✅ Secret pour l'utilisateur superuser PostgreSQL
 apiVersion: v1
 kind: Secret
 metadata:
@@ -58,15 +46,3 @@ type: kubernetes.io/basic-auth
 data:
   username: {{ "postgres" | b64enc }}
   password: {{ "postgres123" | b64enc }}
-
----
-# ✅ Secret pour l'application (sera créé par CloudNativePG mais on peut le pré-créer)
-apiVersion: v1
-kind: Secret
-metadata:
-  name: {{ .Values.client.name }}-postgres-app
-  namespace: {{ .Release.Namespace }}
-type: kubernetes.io/basic-auth
-data:
-  username: {{ "odoo" | b64enc }}
-  password: {{ "odoo123" | b64enc }}
