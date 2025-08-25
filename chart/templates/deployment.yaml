@@ -60,20 +60,6 @@ spec:
             - name: addons
               mountPath: /mnt/extra-addons
               readOnly: true
-          livenessProbe:
-            httpGet:
-              path: /web/health
-              port: http
-            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 300 }}
-            periodSeconds: {{ .Values.livenessProbe.periodSeconds | default 30 }}
-            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 5 }}
-          readinessProbe:
-            httpGet:
-              path: /web/health
-              port: http
-            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 30 }}
-            periodSeconds: {{ .Values.readinessProbe.periodSeconds | default 10 }}
-            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds | default 5 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
