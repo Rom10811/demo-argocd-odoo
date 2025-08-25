@@ -86,7 +86,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/Rom10811/demo-argocd-odoo.git
-    targetRevision: argo-app-of-apps
+    targetRevision: argo-app-of-apps-cnpg
     path: chart
     helm:
       valueFiles:

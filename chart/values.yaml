@@ -1,12 +1,12 @@
-# Default values for Odoo
-# This is a YAML-formatted file.
+# values.yaml
+# Default values for Odoo - Configuration générique multi-tenant
 
 replicaCount: 1
 
 # Informations du client/projet
 client:
   host: "argo2.mokatourisme.dev"  # URL d'accès
-  name: "argo2"  # Nom du projet/client
+  name: "argo2"  # Nom du projet/client (utilisé pour nommer toutes les ressources)
   namespace: "odoo-argo2"  # Namespace dédié
   language: "fr_FR"  # Langue par défaut
   modules: "base"  # Modules à installer par défaut
@@ -19,20 +19,18 @@ image:
     {
       "auths": {
         "ghcr.io": {
-          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZURFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZERFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
         }
       }
     }
-
 
 nameOverride: ""
 fullnameOverride: ""
 
 serviceAccount:
   create: false
-  annotations: { }
-  name:
-
+  annotations: {}
+  name: ""
 
 service:
   type: ClusterIP
@@ -42,25 +40,26 @@ service:
 resources:
   limits:
     memory: 1024Mi
+    cpu: 500m
   requests:
     cpu: 150m
     memory: 512Mi
 
-nodeSelector: { }
-tolerations: [ ]
-affinity: { }
+nodeSelector: {}
+tolerations: []
+affinity: {}
 
-# Configuration base de données
-database:
-  host: postgresql-service  # Sera templated
-  user: admin
-  password: cm9vdA==  # Base64 encoded
-  name: "argo2.mokatourisme.dev"  # Nom de la base = nom du client + _odoo
-  # Le dbfilter doit correspondre exactement au nom de la base
-  # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
-
-# Configuration PostgreSQL
+# Configuration CloudNativePG
 postgres:
+  cluster:
+    name: ""  # Auto-généré: {{ .Values.client.name }}-postgres
+    instances: 2  # Nombre d'instances PostgreSQL
+    storage:
+      size: 20Gi
+      storageClass: ""
+  database:
+    name: ""  # Auto-généré: {{ .Values.client.name }}
+    owner: "odoo"  # Utilisateur propriétaire de la DB
   resources:
     limits:
       memory: 512Mi
@@ -72,22 +71,33 @@ postgres:
 # Configuration Odoo
 odoo:
   adminPassword: "YWRtaW4xMjM="  # admin123 en base64
+  # Probes de santé
+  livenessProbe:
+    initialDelaySeconds: 300
+    periodSeconds: 30
+    timeoutSeconds: 5
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
 
 # Configuration Ingress
 ingress:
   enabled: true
   className: "traefik"
-  host: "argo2.mokatourisme.dev"  # URL d'accès
+  host: ""  # Auto-généré si vide: {{ .Values.client.host }}
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   tls:
-    - secretName: odoo-tls-cert
-      hosts:
-        - "argo2.mokatourisme.dev"
+    enabled: true
+    secretName: ""  # Auto-généré: {{ .Values.client.name }}-tls-cert
 
+# Stockage filestore Odoo
 persistence:
   enabled: true
   size: 10Gi
   storageClass: ""
+  accessModes:
+    - ReadWriteOnce
