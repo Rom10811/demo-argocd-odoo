@@ -3,15 +3,14 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: postgres-{{ .Values.client.name }}
-  namespace: {{ .Release.Namespace }}
+  namespace: {{ .Values.client.namespace }}
 spec:
-  instances: {{ .Values.postgresql.cnpg.instances | default 3 }}
+  instances: {{ .Values.postgres.cluster.instances | default 3 }}
   bootstrap:
     initdb:
-      database: {{ .Values.postgresql.database }}
-      owner: {{ .Values.postgresql.username }}
+      database: {{ .Values.database.name }}
+      owner: {{ .Values.database.user }}
       secret:
         name: {{ .Values.client.name }}-postgres-credentials
   storage:
-    size: {{ .Values.postgresql.cnpg.storage.size }}
-    storageClass: {{ .Values.postgresql.cnpg.storage.class }}
+    size: {{ .Values.postgres.cluster.storage.size }}

@@ -1,106 +1,70 @@
-# values.yaml
-# Default values for Odoo - Configuration générique multi-tenant
-
+# Valeurs pour le client automobile
 replicaCount: 1
 
-# Informations du client/projet
 client:
-  host: "argo2.mokatourisme.dev"
-  name: "argo2"
-  namespace: "odoo-argo2"
+  name: "automobile"
+  host: "automobile.duciel.cloud"
+  namespace: "odoo-automobile"
+  modules: "event,sale,crm"
   language: "fr_FR"
-  modules: "base"
 
 image:
-  repository_name: "ghcr.io/moka-tourisme/docker-moka"
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
   tag: "18-argo"
   pullPolicy: Always
   registrySecret: |
     {
       "auths": {
         "ghcr.io": {
-          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZERFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZURFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
         }
       }
     }
 
-nameOverride: ""
-fullnameOverride: ""
+database:
+  host: postgresql-service
+  user: admin
+  password: cm9vdA==
+  name: "automobile.duciel.cloud"
 
-serviceAccount:
-  create: false
-  annotations: {}
-  name: ""
-
-service:
-  type: ClusterIP
-  targetPort: 8069
-  port: 8069
-
-resources:
-  limits:
-    memory: 1024Mi
-    cpu: 500m
-  requests:
-    cpu: 150m
-    memory: 512Mi
-
-# ✅ FIX 1: Probes à la racine (pas dans odoo)
-livenessProbe:
-  initialDelaySeconds: 300
-  periodSeconds: 30
-  timeoutSeconds: 5
-  failureThreshold: 3
-
-readinessProbe:
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
-
-nodeSelector: {}
-tolerations: []
-affinity: {}
-
-# Configuration CloudNativePG
-postgres:
-  cluster:
-    instances: 2
-    storage:
-      size: 20Gi
-      storageClass: ""
-  database:
-    owner: "odoo"
-  resources:
-    limits:
-      memory: 512Mi
-      cpu: 500m
-    requests:
-      cpu: 250m
-      memory: 256Mi
-
-# Configuration Odoo
 odoo:
-  adminPassword: "YWRtaW4xMjM="  # admin123 en base64
+  adminPassword: "YWRtaW4xMjM="
 
-# ✅ FIX 2: Ingress TLS structure correcte
 ingress:
   enabled: true
   className: "traefik"
-  host: ""  # Auto-généré: {{ .Values.client.host }}
+  host: "automobile.duciel.cloud"
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    cert-manager.io/cluster-issuer: "automobile--letsencrypt-prod"
   tls:
-    - secretName: ""  # Auto-généré: {{ .Values.client.name }}-tls-cert
+    - secretName: odoo-tls-cert
       hosts:
-        - ""  # Auto-généré: {{ .Values.client.host }}
+        - "automobile.duciel.cloud"
 
-# Stockage filestore Odoo
 persistence:
   enabled: true
   size: 10Gi
   storageClass: ""
-  accessModes:
-    - ReadWriteOnce
+
+postgres:
+  cluster:
+    instances: 2
+    storage:
+      size: 30Gi
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 1000m
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+resources:
+  limits:
+    memory: 2Gi
+    cpu: 1000m
+  requests:
+    cpu: 300m
+    memory: 1Gi
