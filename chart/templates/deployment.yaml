@@ -65,8 +65,6 @@ spec:
             - name: ODOO_RC
               value: |
                 [options]
-                addons_path = /mnt/extra-addons
-                data_dir = /var/lib/odoo
                 db_host = {{ .Values.client.name }}-postgres-rw
                 db_port = 5432
                 db_user = odoo
