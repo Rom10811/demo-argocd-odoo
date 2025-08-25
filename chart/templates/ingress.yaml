@@ -1,15 +1,13 @@
-# odoo-ingress.yaml (version Traefik)
+# templates/ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: odoo-ingress-{{ .Values.client.name }}
-  namespace: {{ .Values.client.namespace | default .Release.Namespace }}
+  name: {{ .Values.client.name }}-odoo-ingress
+  namespace: {{ .Release.Namespace }}
   annotations:
-    # NGINX spécifique pour Odoo 🎯
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
-    nginx.ingress.kubernetes.io/client-max-body-size: "100m"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "{{ .Values.client.name }}-letsencrypt-prod"
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -26,13 +24,13 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    - host: {{ .Values.ingress.host | quote }}
+    - host: {{ .Values.client.host | quote }}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: odoo-service-{{ .Values.client.name }}  # 🎯 Nom correct
+                name: {{ .Values.client.name }}-odoo  # ✅ Nom cohérent
                 port:
                   number: {{ .Values.service.port }}

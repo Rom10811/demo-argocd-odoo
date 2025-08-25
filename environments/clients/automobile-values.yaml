@@ -48,18 +48,20 @@ persistence:
   size: 10Gi
   storageClass: ""
 
+# Configuration PostgreSQL CloudNativePG
 postgres:
   cluster:
     instances: 2
     storage:
-      size: 30Gi
+      size: 20Gi
+      storageClass: ""
   resources:
     limits:
-      memory: 1Gi
-      cpu: 1000m
-    requests:
-      cpu: 500m
       memory: 512Mi
+      cpu: 500m
+    requests:
+      cpu: 250m
+      memory: 256Mi
 
 resources:
   limits:

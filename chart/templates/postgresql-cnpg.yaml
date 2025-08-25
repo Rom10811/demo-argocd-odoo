@@ -2,15 +2,38 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: postgres-{{ .Values.client.name }}
-  namespace: {{ .Values.client.namespace }}
+  name: {{ .Values.client.name }}-postgres
+  namespace: {{ .Release.Namespace }}
 spec:
-  instances: {{ .Values.postgres.cluster.instances | default 3 }}
+  instances: {{ .Values.postgres.cluster.instances | default 2 }}
+
+  # Configuration du bootstrap
   bootstrap:
     initdb:
-      database: {{ .Values.database.name }}
-      owner: {{ .Values.database.user }}
+      database: {{ .Values.client.name }}
+      owner: odoo
       secret:
-        name: {{ .Values.client.name }}-postgres-credentials
+        name: {{ .Values.client.name }}-postgres-superuser
+
+  # Configuration du stockage
   storage:
-    size: {{ .Values.postgres.cluster.storage.size }}
+    size: {{ .Values.postgres.cluster.storage.size | default "20Gi" }}
+    {{- if .Values.postgres.cluster.storage.storageClass }}
+    storageClass: {{ .Values.postgres.cluster.storage.storageClass }}
+    {{- end }}
+
+  # Ressources
+  resources:
+    {{- toYaml .Values.postgres.resources | nindent 4 }}
+
+---
+# Secret pour l'utilisateur superuser PostgreSQL
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.client.name }}-postgres-superuser
+  namespace: {{ .Release.Namespace }}
+type: kubernetes.io/basic-auth
+data:
+  username: {{ "postgres" | b64enc }}
+  password: {{ "postgres123" | b64enc }}

@@ -22,6 +22,8 @@ spec:
         client: {{ .Values.client.name }}
         component: odoo
     spec:
+      imagePullSecrets:
+        - name: {{.Values.client.name}}-registry-secret
       containers:
         - name: odoo
           image: "{{ .Values.image.repository_name }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -32,43 +34,31 @@ spec:
               protocol: TCP
           env:
             # CloudNativePG - Connexion via le service du cluster
-            - name: POSTGRES_HOST
-              value: {{ .Values.client.name }}-postgres-rw  # Service read-write CloudNativePG
-            - name: POSTGRES_PORT
+            - name: HOST
+              value: {{ .Values.client.name }}-postgres-rw
+            - name: PORT
               value: "5432"
-            - name: POSTGRES_DB
-              value: {{ .Values.client.name }}
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.client.name }}-postgres-app  # Secret généré par CloudNativePG
-                  key: username
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.client.name }}-postgres-app  # Secret généré par CloudNativePG
-                  key: password
-            # Optionnel: URL complète de connexion PostgreSQL
-            - name: DATABASE_URL
+            - name: USER
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.client.name }}-postgres-app
-                  key: uri
+                  key: username
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.client.name }}-postgres-app
+                  key: password
+            - name: DB_NAME
+              value: {{ .Values.client.name }}
           volumeMounts:
             - name: filestore
               mountPath: /var/lib/odoo/filestore
-            - name: addons
-              mountPath: /mnt/extra-addons
-              readOnly: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
         - name: filestore
           persistentVolumeClaim:
-            claimName: {{ .Values.client.name }}-odoo-filestore
-        - name: addons
-          configMap:
-            name: {{ .Values.client.name }}-odoo-addons
+            claimName: {{ .Values.client.name }}-odoo-filestore  # ✅ Nom cohérent
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -59,8 +59,13 @@ database:
   # Le dbfilter doit correspondre exactement au nom de la base
   # dbfilter: "%h"  # Utilise le nom d'hôte pour filtrer les bases de données
 
-# Configuration PostgreSQL
+# Configuration PostgreSQL CloudNativePG
 postgres:
+  cluster:
+    instances: 2
+    storage:
+      size: 20Gi
+      storageClass: ""
   resources:
     limits:
       memory: 512Mi
