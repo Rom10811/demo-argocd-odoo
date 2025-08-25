@@ -55,8 +55,6 @@ postgres:
     storage:
       size: 20Gi
       storageClass: ""
-    # ✅ Version PostgreSQL 16
-    imageName: "ghcr.io/cloudnative-pg/postgresql:16"
   resources:
     limits:
       memory: 1Gi

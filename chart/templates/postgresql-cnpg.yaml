@@ -6,10 +6,6 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   instances: {{ .Values.postgres.cluster.instances | default 2 }}
-
-  # ✅ Version PostgreSQL 16
-  imageName: ghcr.io/cloudnative-pg/postgresql:16
-
   # Configuration du bootstrap
   bootstrap:
     initdb:
