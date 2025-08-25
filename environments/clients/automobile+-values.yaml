@@ -1,0 +1,49 @@
+# Valeurs pour le client automobile+
+replicaCount: 1
+
+client:
+  name: "automobile+"
+  host: "automobile+.mokatourisme.dev"
+  namespace: "odoo-automobile+"
+  modules: "event,sale,crm"
+  language: "fr_FR"
+
+image:
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
+  tag: "18-argo"
+  pullPolicy: Always
+  registrySecret: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZURFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+        }
+      }
+    }
+
+database:
+  host: postgresql-service
+  user: admin
+  password: cm9vdA==
+  name: "automobile.duciel.cloud"
+
+odoo:
+  adminPassword: "YWRtaW4xMjM="
+
+ingress:
+  enabled: true
+  className: "traefik"
+  host: "automobile+.mokatourisme.dev"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "automobile+--letsencrypt-prod"
+  tls:
+    - secretName: odoo-tls-cert
+      hosts:
+        - "automobile+.mokatourisme.dev"
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
