@@ -1,0 +1,84 @@
+# ✅ Configuration pour le client rom2
+# Généré le Mon Aug 25 12:59:31 UTC 2025
+
+replicaCount: 2
+
+client:
+  name: "rom2"
+  host: "rom2.duciel.cloud"
+  namespace: "odoo-rom2"
+  modules: "bas"
+  language: "fr_FR"
+
+image:
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"
+  tag: "18-argo"
+  pullPolicy: Always
+  registrySecret: |
+    {
+      "auths": {
+        "ghcr.io": {
+          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZERFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+        }
+      }
+    }
+
+# ✅ Configuration database (sera remplacée par PostgreSQL CNPG)
+database:
+  host: "rom2-postgres-rw"
+  user: "odoo"
+  password: "b2RvbzEyMw=="  # odoo123 en base64
+  name: "rom2"
+
+# ✅ Configuration PostgreSQL CloudNativePG
+postgres:
+  cluster:
+    instances: 2
+    storage:
+      size: "30Gi"
+      storageClass: ""  # Utilise la classe par défaut
+  resources:
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+
+# ✅ Configuration Odoo
+odoo:
+  adminPassword: "V1hrWFJvNkFMeHFuOWIrUA=="
+
+# ✅ Configuration Ingress
+ingress:
+  enabled: true
+  className: "traefik"
+  host: "rom2.duciel.cloud"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - secretName: "rom2-tls-cert"
+      hosts:
+        - "rom2.duciel.cloud"
+
+# ✅ Configuration stockage
+persistence:
+  enabled: true
+  size: "15Gi"
+  storageClass: ""
+
+# ✅ Configuration service
+service:
+  type: ClusterIP
+  port: 8069
+
+# ✅ Configuration ressources
+resources:
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+  requests:
+    cpu: "200m"
+    memory: "512Mi"
