@@ -7,7 +7,7 @@ client:
   name: "rom2"
   host: "rom2.duciel.cloud"
   namespace: "odoo-rom2"
-  modules: "bas"
+  modules: "base"
   language: "fr_FR"
 
 image:
