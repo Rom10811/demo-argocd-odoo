@@ -1,7 +1,7 @@
 # ✅ Configuration pour le client rom2
 # Généré le Mon Aug 25 12:59:31 UTC 2025
 
-replicaCount: 2
+replicaCount: 1
 
 client:
   name: "rom2"
