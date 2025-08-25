@@ -10,19 +10,20 @@ spec:
   # ✅ Version PostgreSQL 16
   imageName: ghcr.io/cloudnative-pg/postgresql:16
 
-  # ✅ Bootstrap avec locales forcées
+  # ✅ Bootstrap avec création de l'utilisateur odoo
   bootstrap:
     initdb:
       database: {{ .Values.client.name }}
       owner: odoo
+      secret:
+        name: {{ .Values.client.name }}-postgres-app  # ✅ Ce secret sera créé automatiquement
       encoding: UTF8
-      # ✅ FORCER les locales compatibles
       localeCollate: C
       localeCType: C
-      secret:
-        name: {{ .Values.client.name }}-postgres-superuser
+      # ✅ Script post-init pour configurer l'utilisateur odoo
+      postInitApplicationSQL:
+        - "ALTER USER odoo WITH SUPERUSER;"
 
-  # Configuration du stockage
   storage:
     size: {{ .Values.postgres.cluster.storage.size | default "20Gi" }}
     {{- if .Values.postgres.cluster.storage.storageClass }}
@@ -34,14 +35,22 @@ spec:
       max_connections: "200"
       shared_buffers: "128MB"
       effective_cache_size: "512MB"
-      # ✅ Configuration locale PostgreSQL
-      lc_messages: C
-      lc_monetary: C
-      lc_numeric: C
-      lc_time: C
 
   resources:
     {{- toYaml .Values.postgres.resources | nindent 4 }}
+
+---
+# ✅ Secret manuel pour l'utilisateur odoo (au cas où)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.client.name }}-postgres-app
+  namespace: {{ .Release.Namespace }}
+type: kubernetes.io/basic-auth
+data:
+  username: {{ "odoo" | b64enc }}
+  password: {{ "odoo123" | b64enc }}
+  dbname: {{ .Values.client.name | b64enc }}
 
 ---
 apiVersion: v1
