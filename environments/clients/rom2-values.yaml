@@ -18,7 +18,7 @@ image:
     {
       "auths": {
         "ghcr.io": {
-          "auth": "Um9tMTA4MTE6Z2hwX1pYR2lYV2NPV2RWZERFVG9kSW5BYm9abHd0d1NDTDM0bjV0WQ=="
+          "auth": "Um9tMTA4MTE6Z2hjci5pby9tb2thLXRvdXJpc21lL2RvY2tlci1tb2thOjE4LWFyZ28="
         }
       }
     }
