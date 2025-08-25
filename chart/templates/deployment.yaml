@@ -62,15 +62,6 @@ spec:
             - name: POSTGRES_DB
               value: {{ .Values.client.name }}
             # ✅ Configuration Odoo
-            - name: ODOO_RC
-              value: |
-                [options]
-                db_host = {{ .Values.client.name }}-postgres-rw
-                db_port = 5432
-                db_user = odoo
-                db_password = $(POSTGRES_PASSWORD)
-                list_db = True
-                proxy_mode = True
           volumeMounts:
             - name: filestore
               mountPath: /var/lib/odoo/filestore
