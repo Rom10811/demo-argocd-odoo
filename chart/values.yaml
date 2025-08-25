@@ -5,14 +5,14 @@ replicaCount: 1
 
 # Informations du client/projet
 client:
-  host: "argo2.mokatourisme.dev"  # URL d'accès
-  name: "argo2"  # Nom du projet/client (utilisé pour nommer toutes les ressources)
-  namespace: "odoo-argo2"  # Namespace dédié
-  language: "fr_FR"  # Langue par défaut
-  modules: "base"  # Modules à installer par défaut
+  host: "argo2.mokatourisme.dev"
+  name: "argo2"
+  namespace: "odoo-argo2"
+  language: "fr_FR"
+  modules: "base"
 
 image:
-  repository_name: "ghcr.io/moka-tourisme/docker-moka"  # Image personnalisée avec wkhtmltopdf
+  repository_name: "ghcr.io/moka-tourisme/docker-moka"
   tag: "18-argo"
   pullPolicy: Always
   registrySecret: |
@@ -45,6 +45,19 @@ resources:
     cpu: 150m
     memory: 512Mi
 
+# ✅ FIX 1: Probes à la racine (pas dans odoo)
+livenessProbe:
+  initialDelaySeconds: 300
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
 nodeSelector: {}
 tolerations: []
 affinity: {}
@@ -52,14 +65,12 @@ affinity: {}
 # Configuration CloudNativePG
 postgres:
   cluster:
-    name: ""  # Auto-généré: {{ .Values.client.name }}-postgres
-    instances: 2  # Nombre d'instances PostgreSQL
+    instances: 2
     storage:
       size: 20Gi
       storageClass: ""
   database:
-    name: ""  # Auto-généré: {{ .Values.client.name }}
-    owner: "odoo"  # Utilisateur propriétaire de la DB
+    owner: "odoo"
   resources:
     limits:
       memory: 512Mi
@@ -71,28 +82,20 @@ postgres:
 # Configuration Odoo
 odoo:
   adminPassword: "YWRtaW4xMjM="  # admin123 en base64
-  # Probes de santé
-  livenessProbe:
-    initialDelaySeconds: 300
-    periodSeconds: 30
-    timeoutSeconds: 5
-  readinessProbe:
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
 
-# Configuration Ingress
+# ✅ FIX 2: Ingress TLS structure correcte
 ingress:
   enabled: true
   className: "traefik"
-  host: ""  # Auto-généré si vide: {{ .Values.client.host }}
+  host: ""  # Auto-généré: {{ .Values.client.host }}
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   tls:
-    enabled: true
-    secretName: ""  # Auto-généré: {{ .Values.client.name }}-tls-cert
+    - secretName: ""  # Auto-généré: {{ .Values.client.name }}-tls-cert
+      hosts:
+        - ""  # Auto-généré: {{ .Values.client.host }}
 
 # Stockage filestore Odoo
 persistence:
